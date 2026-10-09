@@ -1,0 +1,9 @@
+{
+  "name": "OmniQuest: Interactive Gamified Learning",
+  "description": "Gamified interactive learning across languages, mathematics, music, science, and coding with AI tutoring, voice recognition, streaks, and adaptive paths.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

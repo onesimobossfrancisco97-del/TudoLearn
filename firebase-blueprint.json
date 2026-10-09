@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with gamification stats, streak, and preferences.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "xp": { "type": "number" },
+        "gems": { "type": "number" },
+        "streak": { "type": "number" },
+        "todayMinutes": { "type": "number" },
+        "dailyGoalMinutes": { "type": "number" },
+        "isSuper": { "type": "boolean" },
+        "currentSubject": { "type": "string" },
+        "currentCourseId": { "type": "string" },
+        "completedLessonIds": { "type": "array" },
+        "completedCourseIds": { "type": "array" },
+        "downloadedCourseIds": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "xp", "streak"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "Learner study tips and discussions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "authorBadge": { "type": "string" },
+        "subject": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "upvotedUserIds": { "type": "array" }
+      },
+      "required": ["id", "authorId", "authorName", "title", "content", "subject"]
+    },
+    "CommunityReply": {
+      "title": "CommunityReply",
+      "description": "Reply to a study discussion.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "avatar": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "authorId", "authorName", "content"]
+    },
+    "CustomCourse": {
+      "title": "CustomCourse",
+      "description": "Custom courses created by instructors.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "level": { "type": "string" },
+        "description": { "type": "string" },
+        "color": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "creatorId", "title", "subject"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User account document"
+    },
+    "/communityPosts/{postId}": {
+      "schema": "CommunityPost",
+      "description": "Community posts feed"
+    },
+    "/communityPosts/{postId}/replies/{replyId}": {
+      "schema": "CommunityReply",
+      "description": "Replies to a community post"
+    },
+    "/customCourses/{courseId}": {
+      "schema": "CustomCourse",
+      "description": "Instructor-created custom courses"
+    }
+  }
+}
