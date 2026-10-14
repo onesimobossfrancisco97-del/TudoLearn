@@ -70,6 +70,28 @@ export const INITIAL_BADGES: Badge[] = [
     isUnlocked: false,
     rewardGems: 200,
   },
+  {
+    id: 'badge-daily-champion',
+    title: 'Daily Challenger',
+    description: 'Solve 3 Daily Rotating Challenges',
+    icon: 'Sparkles',
+    category: 'mastery',
+    progress: 1,
+    maxProgress: 3,
+    isUnlocked: false,
+    rewardGems: 120,
+  },
+  {
+    id: 'badge-cyber-architect',
+    title: 'Cyber Architect',
+    description: 'Master hardware, terminal pipelines & computer networks',
+    icon: 'Laptop',
+    category: 'mastery',
+    progress: 1,
+    maxProgress: 4,
+    isUnlocked: false,
+    rewardGems: 150,
+  },
 ];
 
 export const DEFAULT_USER: UserProfile = {
@@ -93,6 +115,8 @@ export const DEFAULT_USER: UserProfile = {
   dailyGoalMinutes: 15,
   todayMinutes: 8,
   badges: INITIAL_BADGES,
+  lastDailyChallengeDate: '',
+  dailyChallengeStreak: 0,
 };
 
 export const INITIAL_LEADERBOARD: LeaderboardUser[] = [
@@ -156,6 +180,27 @@ export const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
         avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
         content: 'My mind is blown! Used this in the speed challenge today.',
         createdAt: '18 hours ago',
+      },
+    ],
+  },
+  {
+    id: 'p-4',
+    authorName: 'Gabriel Santos',
+    authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+    authorBadge: '💻 Linux SysAdmin',
+    subject: 'informatics',
+    title: 'Essential Linux CLI shortcuts for Informatics Unit 1',
+    content: 'Quick tip: remember "ls -la" to list all files with permissions and file sizes in human-readable format. Also, pressing Ctrl+R lets you reverse-search your entire shell command history instantly!',
+    createdAt: '3 hours ago',
+    upvotes: 64,
+    hasUpvoted: true,
+    replies: [
+      {
+        id: 'r-3',
+        authorName: 'Alex Explorer (You)',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+        content: 'Ctrl+R is a lifesaver in the terminal exercises! Thanks for sharing!',
+        createdAt: '2 hours ago',
       },
     ],
   },

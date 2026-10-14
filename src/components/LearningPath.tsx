@@ -7,9 +7,10 @@ import {
   Gift,
   BookOpen,
 } from 'lucide-react';
-import { Course, LessonNode } from '../types';
+import { Course, LessonNode, DailyChallenge, UserProfile } from '../types';
 import { MascotPip } from './MascotPip';
 import { sound } from '../utils/audio';
+import { DailyChallengeCard } from './DailyChallengeCard';
 
 interface LearningPathProps {
   course: Course;
@@ -17,6 +18,9 @@ interface LearningPathProps {
   onSelectLesson: (lesson: LessonNode) => void;
   onOpenChest: (gems: number) => void;
   onOpenAiTutor: () => void;
+  dailyChallenge?: DailyChallenge;
+  user?: UserProfile;
+  onOpenDailyChallenge?: () => void;
 }
 
 export const LearningPath: React.FC<LearningPathProps> = ({
@@ -25,6 +29,9 @@ export const LearningPath: React.FC<LearningPathProps> = ({
   onSelectLesson,
   onOpenChest,
   onOpenAiTutor,
+  dailyChallenge,
+  user,
+  onOpenDailyChallenge,
 }) => {
   const [selectedNode, setSelectedNode] = useState<LessonNode | null>(null);
   const [openedChestIds, setOpenedChestIds] = useState<string[]>([]);
@@ -66,6 +73,17 @@ export const LearningPath: React.FC<LearningPathProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Daily Challenge Feature on Dashboard */}
+      {dailyChallenge && user && onOpenDailyChallenge && (
+        <div className="mb-8 animate-fade-in">
+          <DailyChallengeCard
+            challenge={dailyChallenge}
+            user={user}
+            onOpenModal={onOpenDailyChallenge}
+          />
+        </div>
+      )}
 
       {/* Units & Serpentine Path */}
       {course.units.map((unit) => (

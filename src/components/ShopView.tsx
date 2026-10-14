@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Shield, Sparkles, Check } from 'lucide-react';
+import { Heart, Shield, Sparkles, Check, Link2 } from 'lucide-react';
 import { sound } from '../utils/audio';
 
 interface ShopViewProps {
@@ -36,6 +36,11 @@ export const ShopView: React.FC<ShopViewProps> = ({
             <p className="text-xs text-blue-100 font-semibold mt-1">
               Unlimited hearts, offline downloads, and zero interruptions.
             </p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[10px] text-blue-200 font-black flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-lg border border-white/15">
+                <Link2 className="w-3 h-3 text-yellow-300" /> Stripe / Lemon Squeezy Payment Links
+              </span>
+            </div>
           </div>
 
           <button

@@ -40,6 +40,12 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
     }
 
+    // App settings such as payment configuration
+    match /appSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

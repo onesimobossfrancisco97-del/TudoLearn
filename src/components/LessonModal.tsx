@@ -18,6 +18,8 @@ import { MultipleChoice } from './exercises/MultipleChoice';
 import { SentenceOrder } from './exercises/SentenceOrder';
 import { SpeechPractice } from './exercises/SpeechPractice';
 import { PianoNoteExercise } from './exercises/PianoNoteExercise';
+import { GuitarFretboardExercise } from './exercises/GuitarFretboardExercise';
+import { DrumBeatExercise } from './exercises/DrumBeatExercise';
 import { MathSolveExercise } from './exercises/MathSolveExercise';
 import { MascotPip } from './MascotPip';
 import { AiTutorModal } from './AiTutorModal';
@@ -49,6 +51,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [speechTranscript, setSpeechTranscript] = useState('');
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const [instrumentAnswer, setInstrumentAnswer] = useState<string | null>(null);
   const [mathInput, setMathInput] = useState('');
   const [selectedFallbackOption, setSelectedFallbackOption] = useState<string | null>(null);
 
@@ -111,6 +114,9 @@ export const LessonModal: React.FC<LessonModalProps> = ({
         return speechTranscript.trim().length > 0;
       case 'piano_note':
         return selectedNote !== null;
+      case 'guitar_fretboard':
+      case 'drum_beat':
+        return instrumentAnswer !== null;
       case 'math_solve':
         return mathInput.trim().length > 0;
       default:
@@ -139,6 +145,8 @@ export const LessonModal: React.FC<LessonModalProps> = ({
       }
     } else if (currentExercise.type === 'piano_note') {
       correct = selectedNote === currentExercise.correctAnswer;
+    } else if (currentExercise.type === 'guitar_fretboard' || currentExercise.type === 'drum_beat') {
+      correct = instrumentAnswer?.trim().toLowerCase() === ans;
     } else if (currentExercise.type === 'math_solve') {
       correct = mathInput.trim() === currentExercise.correctAnswer.trim();
     }
@@ -166,6 +174,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
       setSelectedWords([]);
       setSpeechTranscript('');
       setSelectedNote(null);
+      setInstrumentAnswer(null);
       setMathInput('');
       setSelectedFallbackOption(null);
       setIsAnswerSubmitted(false);
@@ -290,6 +299,24 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 exercise={currentExercise}
                 selectedNote={selectedNote}
                 onSelectNote={setSelectedNote}
+                isAnswerSubmitted={isAnswerSubmitted}
+              />
+            )}
+
+            {currentExercise.type === 'guitar_fretboard' && (
+              <GuitarFretboardExercise
+                exercise={currentExercise}
+                selectedAnswer={instrumentAnswer}
+                onSelectAnswer={setInstrumentAnswer}
+                isAnswerSubmitted={isAnswerSubmitted}
+              />
+            )}
+
+            {currentExercise.type === 'drum_beat' && (
+              <DrumBeatExercise
+                exercise={currentExercise}
+                selectedAnswer={instrumentAnswer}
+                onSelectAnswer={setInstrumentAnswer}
                 isAnswerSubmitted={isAnswerSubmitted}
               />
             )}

@@ -3,6 +3,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import { MascotPip } from './MascotPip';
 import { SubjectType } from '../types';
 import { sound } from '../utils/audio';
+import appLogoImg from '../assets/images/tudolearn_app_logo_1791585881128.jpg';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -35,20 +36,30 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border-4 border-blue-400 overflow-hidden flex flex-col p-6 sm:p-8 relative animate-scale-up">
-        {/* Pip Mascot at the top */}
+        {/* Mascot / Logo at the top */}
         <div className="flex flex-col items-center text-center mb-6">
-          <MascotPip
-            mood={step === 3 ? 'celebrate' : 'cheer'}
-            size="md"
-            interactive={false}
-          />
+          {step === 1 ? (
+            <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-xl shadow-blue-500/30 border-3 border-blue-300 ring-4 ring-blue-100 animate-bounce-subtle mb-1">
+              <img
+                src={appLogoImg}
+                alt="TudoLearn App Logo"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <MascotPip
+              mood={step === 3 ? 'celebrate' : 'cheer'}
+              size="md"
+              interactive={false}
+            />
+          )}
           <h1 className="text-2xl font-black text-slate-900 mt-3">
             {step === 1 && 'Welcome to TudoLearn!'}
             {step === 2 && 'Skill Diagnostic Check'}
             {step === 3 && 'Set Your Daily Target'}
           </h1>
           <p className="text-xs text-slate-500 font-bold mt-1">
-            {step === 1 && 'Which subject would you love to conquer first?'}
+            {step === 1 && 'Master languages, math, music, science, and coding in one place.'}
             {step === 2 && 'Help us adapt interactive lessons to your current skill level.'}
             {step === 3 && 'Daily consistency of just 15 minutes creates permanent mastery.'}
           </p>
@@ -58,12 +69,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         {step === 1 && (
           <div className="grid grid-cols-2 gap-3 mb-6">
             {[
-              { id: 'languages', title: '🇪🇸 Languages', desc: 'Spanish conversational' },
+              { id: 'informatics', title: '💻 Informatics & PC', desc: 'Hardware, Linux, Networks & SQL' },
+              { id: 'languages', title: '🌍 Languages', desc: '10 world languages & speech' },
+              { id: 'music', title: '🎸 Music & Instruments', desc: 'Guitar, Drums, Piano & more' },
               { id: 'mathematics', title: '📐 Mathematics', desc: 'Rapid mental arithmetic' },
-              { id: 'music', title: '🎵 Music', desc: 'Piano keys & ear training' },
+              { id: 'coding', title: '⚡ Coding & Logic', desc: 'Algorithms & logic gates' },
               { id: 'science', title: '🔬 Science', desc: 'Physics & cosmic forces' },
-              { id: 'coding', title: '💻 Coding', desc: 'Algorithms & logic' },
-              { id: 'psychology', title: '🧠 Psychology', desc: 'Habit loops & memory' },
             ].map((sub) => (
               <button
                 key={sub.id}
@@ -91,6 +102,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-4 text-center">
               <span className="text-[10px] uppercase font-black text-blue-500">Diagnostic Question</span>
               <p className="text-base font-black text-slate-800 mt-1">
+                {selectedSubject === 'informatics' && 'Which hardware component executes arithmetic instructions as the "brain" of the computer?'}
                 {selectedSubject === 'languages' && 'How would you say "Good morning" in Spanish?'}
                 {selectedSubject === 'mathematics' && 'What is 15% of 80?'}
                 {selectedSubject === 'music' && 'Which white key sits left of the two black keys?'}

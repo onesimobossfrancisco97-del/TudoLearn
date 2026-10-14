@@ -13,12 +13,15 @@ import {
   LogIn,
   LogOut,
   Cloud,
+  Search,
+  Globe,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { User as FirebaseUser } from 'firebase/auth';
 import { Course } from '../types';
 import { sound } from '../utils/audio';
 import { DailyProgressRing } from './DailyProgressRing';
+import appLogoImg from '../assets/images/tudolearn_app_logo_1791585881128.jpg';
 
 interface HeaderNavProps {
   courses: Course[];
@@ -38,6 +41,8 @@ interface HeaderNavProps {
   firebaseUser: FirebaseUser | null;
   onSignInGoogle: () => void;
   onSignOut: () => void;
+  onOpenDailyChallenge?: () => void;
+  isDailyChallengeCompleted?: boolean;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -58,8 +63,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   firebaseUser,
   onSignInGoogle,
   onSignOut,
+  onOpenDailyChallenge,
+  isDailyChallengeCompleted,
 }) => {
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const [courseSearch, setCourseSearch] = useState('');
+  const [courseCategoryFilter, setCourseCategoryFilter] = useState<'all' | 'languages' | 'music' | 'stem' | 'informatics'>('all');
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [isCelebratingStreak, setIsCelebratingStreak] = useState(false);
@@ -148,16 +157,20 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Brand Logo & Course Switcher */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* TudoLearn Brand Logo */}
-          <div className="flex items-center gap-2 select-none shrink-0">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-sky-400 flex items-center justify-center text-white shadow-md shadow-blue-500/20 border-b-2 border-blue-900 shrink-0">
-              <GraduationCap className="w-5 h-5" />
+          <div className="flex items-center gap-2 select-none shrink-0 group cursor-pointer" onClick={() => sound.playLevelUp()}>
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-md shadow-blue-500/25 border-2 border-blue-200 group-hover:scale-105 transition-transform shrink-0 bg-blue-600 ring-2 ring-blue-400/20">
+              <img
+                src={appLogoImg}
+                alt="TudoLearn App Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-black tracking-tight bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent leading-none">
                 TudoLearn
               </span>
               <span className="text-[8px] uppercase tracking-widest font-black text-blue-500/80 mt-0.5 hidden sm:block">
-                Gamified Mastery
+                All-in-One Learning
               </span>
             </div>
           </div>
@@ -183,32 +196,117 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
             {/* Dropdown Menu */}
             {showCourseDropdown && (
-              <div className="absolute top-12 left-0 w-64 bg-white border-2 border-blue-200 rounded-3xl shadow-2xl p-2 z-50 animate-scale-up">
-                <div className="text-[10px] uppercase font-black tracking-wider text-blue-400 px-3 py-1.5">
-                  Select Study Course
+              <div className="absolute top-12 left-0 w-80 sm:w-96 bg-white border-2 border-blue-200 rounded-3xl shadow-2xl p-3 z-50 animate-scale-up">
+                <div className="flex items-center justify-between px-1 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+                      Explore Courses ({courses.length})
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
+                      {courses.filter((c) => c.subject === 'informatics' || c.subject === 'coding').length} Tech & Informatics
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                      {courses.filter((c) => c.subject === 'languages').length} Languages
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                      {courses.filter((c) => c.subject === 'music').length} Music
+                    </span>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  {courses.map((c) => (
+
+                {/* Search Bar */}
+                <div className="relative mb-2">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={courseSearch}
+                    onChange={(e) => setCourseSearch(e.target.value)}
+                    placeholder="Search informatics, computer, hardware, Linux, SQL, guitar, languages..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:border-blue-500 font-medium"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Category Pills */}
+                <div className="flex gap-1 mb-2 overflow-x-auto pb-0.5">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'informatics', label: `💻 Informatics (${courses.filter((c) => c.subject === 'informatics' || c.subject === 'coding').length})` },
+                    { id: 'languages', label: `🌍 Languages (${courses.filter((c) => c.subject === 'languages').length})` },
+                    { id: 'music', label: `🎸 Music (${courses.filter((c) => c.subject === 'music').length})` },
+                    { id: 'stem', label: '🔬 Science & Math' },
+                  ].map((cat) => (
                     <button
-                      key={c.id}
-                      onClick={() => {
-                        sound.playClick();
-                        onSelectCourse(c);
-                        setShowCourseDropdown(false);
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-2xl text-left transition-colors cursor-pointer ${
-                        c.id === currentCourse.id
-                          ? 'bg-blue-100 text-blue-900 font-black'
-                          : 'hover:bg-slate-50 text-slate-700 font-bold'
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCourseCategoryFilter(cat.id as any)}
+                      className={`px-2.5 py-1 text-[10px] font-black rounded-lg transition-colors cursor-pointer shrink-0 ${
+                        courseCategoryFilter === cat.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                       }`}
                     >
-                      <span className="text-xl">{c.flagEmoji || '🎓'}</span>
-                      <div className="flex-1 truncate">
-                        <div className="text-xs truncate">{c.title}</div>
-                        <div className="text-[10px] text-slate-400 capitalize">{c.subject}</div>
-                      </div>
+                      {cat.label}
                     </button>
                   ))}
+                </div>
+
+                {/* Scrollable Course List */}
+                <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+                  {courses
+                    .filter((c) => {
+                      if (courseCategoryFilter === 'languages') return c.subject === 'languages';
+                      if (courseCategoryFilter === 'music') return c.subject === 'music';
+                      if (courseCategoryFilter === 'informatics') return c.subject === 'informatics' || c.subject === 'coding';
+                      if (courseCategoryFilter === 'stem') return c.subject === 'mathematics' || c.subject === 'science' || c.subject === 'psychology';
+                      return true;
+                    })
+                    .filter((c) => {
+                      if (!courseSearch.trim()) return true;
+                      const q = courseSearch.toLowerCase();
+                      return (
+                        c.title.toLowerCase().includes(q) ||
+                        (c.language && c.language.toLowerCase().includes(q)) ||
+                        c.subject.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          sound.playClick();
+                          onSelectCourse(c);
+                          setShowCourseDropdown(false);
+                          setCourseSearch('');
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-2xl text-left transition-all cursor-pointer ${
+                          c.id === currentCourse.id
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-black'
+                            : 'hover:bg-blue-50/70 text-slate-700 font-bold border border-transparent hover:border-blue-100'
+                        }`}
+                      >
+                        <span className="text-2xl leading-none shrink-0 drop-shadow-xs">
+                          {c.flagEmoji || '🎓'}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-xs truncate ${c.id === currentCourse.id ? 'text-white font-black' : 'text-slate-900 font-bold'}`}>
+                            {c.title}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] capitalize ${c.id === currentCourse.id ? 'text-blue-100' : 'text-slate-400'}`}>
+                              {c.subject === 'languages' ? c.language || 'Language' : c.subject}
+                            </span>
+                            <span className={`text-[9px] px-1.5 py-0.2 rounded-sm font-semibold ${c.id === currentCourse.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                              {c.totalLearners} learners
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                 </div>
               </div>
             )}
@@ -242,6 +340,41 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             <Bot className="w-3.5 h-3.5" />
             <span>Pip</span>
           </button>
+
+          {/* Daily Challenge Quick Button */}
+          {onOpenDailyChallenge && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                onOpenDailyChallenge();
+              }}
+              className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl font-black text-xs transition-all active:scale-95 cursor-pointer border ${
+                isDailyChallengeCompleted
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 shadow-xs'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white border-amber-600 shadow-sm shadow-amber-500/30'
+              }`}
+              title={
+                isDailyChallengeCompleted
+                  ? 'Daily Challenge completed today! (+50 gems claimed)'
+                  : "Daily Challenge: Solve today's puzzle (+50 Gems)"
+              }
+            >
+              <Sparkles
+                className={`w-3.5 h-3.5 ${
+                  isDailyChallengeCompleted
+                    ? 'text-emerald-600'
+                    : 'text-amber-100 fill-amber-200'
+                }`}
+              />
+              <span className="hidden lg:inline">
+                {isDailyChallengeCompleted ? 'Solved' : 'Daily'}
+              </span>
+              {!isDailyChallengeCompleted && (
+                <span className="w-2 h-2 rounded-full bg-amber-200 absolute -top-0.5 -right-0.5 animate-ping" />
+              )}
+            </button>
+          )}
 
           {/* Streak Flame Counter */}
           <div className="relative">

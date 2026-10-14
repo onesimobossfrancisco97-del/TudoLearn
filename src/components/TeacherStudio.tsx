@@ -145,6 +145,7 @@ export const TeacherStudio: React.FC<TeacherStudioProps> = ({
               className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-black"
             >
               <option value="languages">Languages</option>
+              <option value="informatics">Informatics & Computers</option>
               <option value="mathematics">Mathematics</option>
               <option value="music">Music</option>
               <option value="science">Science</option>

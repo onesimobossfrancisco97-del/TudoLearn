@@ -80,7 +80,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
-        {['all', 'languages', 'mathematics', 'music', 'science', 'coding', 'psychology'].map((sub) => (
+        {['all', 'informatics', 'languages', 'mathematics', 'music', 'science', 'coding', 'psychology'].map((sub) => (
           <button
             key={sub}
             onClick={() => {
@@ -214,6 +214,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                   className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-black"
                 >
                   <option value="languages">Languages</option>
+                  <option value="informatics">Informatics & Computers</option>
                   <option value="mathematics">Mathematics</option>
                   <option value="music">Music</option>
                   <option value="science">Science</option>

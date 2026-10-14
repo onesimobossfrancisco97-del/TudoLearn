@@ -1,4 +1,4 @@
-export type SubjectType = 'languages' | 'mathematics' | 'music' | 'science' | 'coding' | 'psychology';
+export type SubjectType = 'languages' | 'mathematics' | 'music' | 'science' | 'coding' | 'psychology' | 'informatics';
 
 export type ExerciseType =
   | 'multiple_choice'
@@ -6,8 +6,16 @@ export type ExerciseType =
   | 'listen_select'
   | 'speech_practice'
   | 'piano_note'
+  | 'guitar_fretboard'
+  | 'drum_beat'
   | 'math_solve'
   | 'flashcard';
+
+export interface GuitarChordFret {
+  stringNum: number; // 1 to 6 (1 is high E, 6 is low E)
+  fret: number;      // -1 for muted (X), 0 for open (O), 1..5 for fretted
+  finger?: number;   // 1 to 4
+}
 
 export interface Exercise {
   id: string;
@@ -26,6 +34,12 @@ export interface Exercise {
   explanation: string;
   hint?: string;
   wordBank?: string[];  // For sentence ordering
+  // Music & Instruments specialized fields
+  instrumentType?: 'guitar' | 'bass' | 'ukulele' | 'drums' | 'piano' | 'violin' | 'saxophone';
+  guitarChordName?: string;
+  guitarFrets?: GuitarChordFret[];
+  targetFretPosition?: { stringNum: number; fret: number };
+  drumBeatPattern?: { drum: 'kick' | 'snare' | 'hihat' | 'tom' | 'crash'; step: number }[];
 }
 
 export interface LessonNode {
@@ -109,6 +123,28 @@ export interface CommunityPost {
   }[];
 }
 
+export interface DailyChallenge {
+  id: string;
+  dateKey: string;
+  title: string;
+  category: 'languages' | 'music' | 'mathematics' | 'science' | 'coding' | 'riddle' | 'informatics';
+  categoryLabel: string;
+  categoryEmoji: string;
+  difficulty: 'Easy' | 'Medium' | 'Challenging' | 'Expert';
+  gemsReward: number;
+  xpReward: number;
+  question: string;
+  context?: string;
+  puzzleType: 'multiple_choice' | 'word_scramble' | 'math_input' | 'music_pitch';
+  options?: string[];
+  correctAnswer: string;
+  explanation: string;
+  hint: string;
+  soundNote?: string;
+  instrumentType?: 'guitar' | 'piano' | 'drums' | 'bass';
+  scrambleLetters?: string[];
+}
+
 export interface UserProfile {
   id?: string;
   name: string;
@@ -132,4 +168,15 @@ export interface UserProfile {
   dailyGoalMinutes: number;
   todayMinutes: number;
   badges: Badge[];
+  lastDailyChallengeDate?: string;
+  dailyChallengeStreak?: number;
 }
+
+export interface PaymentConfig {
+  provider: 'stripe' | 'lemonsqueezy' | 'paypal' | 'custom';
+  yearlyPaymentUrl: string;
+  monthlyPaymentUrl: string;
+  directRedirectEnabled: boolean;
+  currency: string;
+}
+

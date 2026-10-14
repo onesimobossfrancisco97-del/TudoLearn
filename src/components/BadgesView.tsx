@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, Flame, Mic, Music, Calculator, Crown, CheckCircle2, Sparkles } from 'lucide-react';
+import { Award, Flame, Mic, Music, Calculator, Crown, CheckCircle2, Sparkles, Laptop } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Badge } from '../types';
 import { sound } from '../utils/audio';
@@ -22,6 +22,10 @@ export const BadgesView: React.FC<BadgesViewProps> = ({ badges, onClaimBadge }) 
         return <Calculator className="w-6 h-6 text-sky-500" />;
       case 'Crown':
         return <Crown className="w-6 h-6 text-amber-500 fill-amber-400" />;
+      case 'Sparkles':
+        return <Sparkles className="w-6 h-6 text-amber-500 fill-amber-300" />;
+      case 'Laptop':
+        return <Laptop className="w-6 h-6 text-sky-500" />;
       default:
         return <Award className="w-6 h-6 text-blue-600" />;
     }

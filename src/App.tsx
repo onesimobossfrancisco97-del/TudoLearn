@@ -37,6 +37,8 @@ import { AiToolsModal } from './components/AiToolsModal';
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { CertificateModal } from './components/CertificateModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { DailyChallengeModal } from './components/DailyChallengeModal';
+import { getDailyChallengeForDate, getTodayDateKey } from './data/dailyChallengesData';
 import { sound } from './utils/audio';
 
 export default function App() {
@@ -57,7 +59,39 @@ export default function App() {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateCourse, setCertificateCourse] = useState<Course | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
   const [isSimulatedOffline, setIsSimulatedOffline] = useState(false);
+
+  // Today's rotating daily challenge & date key
+  const todayDateKey = getTodayDateKey();
+  const dailyChallenge = getDailyChallengeForDate();
+  const isDailyChallengeCompleted = user.lastDailyChallengeDate === todayDateKey;
+
+  // Check for successful payment return URL (?payment_success=true)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment_success') === 'true' || urlParams.get('plan') === 'super') {
+      sound.playLevelUp();
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.4 },
+        colors: ['#2563EB', '#38BDF8', '#F59E0B', '#10B981'],
+      });
+      setUser((prev) => ({
+        ...prev,
+        isSuper: true,
+        hearts: prev.maxHearts,
+        badges: prev.badges.map((b) =>
+          b.id === 'badge-super' ? { ...b, progress: 1, isUnlocked: true } : b
+        ),
+      }));
+      // Clean query params from URL without refreshing
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, []);
 
   // Listen to Firebase Auth state & sync with Firestore
   useEffect(() => {
@@ -244,6 +278,46 @@ export default function App() {
     });
   };
 
+  // Daily challenge completion handler
+  const handleCompleteDailyChallenge = (gemsBonus: number, xpBonus: number) => {
+    setUser((prev) => {
+      const isAlreadyDone = prev.lastDailyChallengeDate === todayDateKey;
+      if (isAlreadyDone) return prev;
+
+      const updatedGems = prev.gems + gemsBonus;
+      const updatedXp = prev.xp + xpBonus;
+      const updatedStreak = (prev.dailyChallengeStreak || 0) + 1;
+
+      // Update badge progress for badge-daily-champion
+      const updatedBadges = prev.badges.map((b) => {
+        if (b.id === 'badge-daily-champion') {
+          const nextProg = Math.min(b.maxProgress, b.progress + 1);
+          return {
+            ...b,
+            progress: nextProg,
+            isUnlocked: nextProg >= b.maxProgress ? true : b.isUnlocked,
+          };
+        }
+        return b;
+      });
+
+      return {
+        ...prev,
+        gems: updatedGems,
+        xp: updatedXp,
+        lastDailyChallengeDate: todayDateKey,
+        dailyChallengeStreak: updatedStreak,
+        todayMinutes: prev.todayMinutes + 4,
+        badges: updatedBadges,
+      };
+    });
+
+    // Update leaderboard with new XP
+    setLeaderboardUsers((prev) =>
+      prev.map((u) => (u.isCurrentUser ? { ...u, xp: u.xp + xpBonus } : u))
+    );
+  };
+
   // Claim achievement badge
   const handleClaimBadge = (badgeId: string, gemReward: number) => {
     setUser((prev) => ({
@@ -364,6 +438,8 @@ export default function App() {
         firebaseUser={firebaseUser}
         onSignInGoogle={handleSignInGoogle}
         onSignOut={handleSignOut}
+        onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
+        isDailyChallengeCompleted={isDailyChallengeCompleted}
       />
 
       {/* Main Content Area */}
@@ -375,6 +451,9 @@ export default function App() {
             onSelectLesson={(lesson) => setActiveLesson(lesson)}
             onOpenChest={handleOpenChest}
             onOpenAiTutor={() => setShowAiTutor(true)}
+            dailyChallenge={dailyChallenge}
+            user={user}
+            onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
           />
         )}
 
@@ -493,6 +572,17 @@ export default function App() {
           studentName={user.name}
           courseTitle={certificateCourse.title}
           subjectName={certificateCourse.subject}
+        />
+      )}
+
+      {/* Rotating Daily Challenge Modal */}
+      {showDailyChallengeModal && (
+        <DailyChallengeModal
+          isOpen={showDailyChallengeModal}
+          onClose={() => setShowDailyChallengeModal(false)}
+          challenge={dailyChallenge}
+          user={user}
+          onCompleteChallenge={handleCompleteDailyChallenge}
         />
       )}
 

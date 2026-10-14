@@ -1,4 +1,7 @@
 import { Course } from '../types';
+import { LANGUAGE_COURSES } from './languageCourses';
+import { INSTRUMENT_COURSES } from './instrumentCourses';
+import { INFORMATICS_COURSES } from './informaticsCourses';
 
 export const COURSES_DATA: Course[] = [
   {
@@ -231,6 +234,7 @@ export const COURSES_DATA: Course[] = [
       },
     ],
   },
+  ...LANGUAGE_COURSES,
   {
     id: 'course-math',
     subject: 'mathematics',
@@ -373,6 +377,7 @@ export const COURSES_DATA: Course[] = [
     id: 'course-music',
     subject: 'music',
     title: 'Music Theory & Ear Training',
+    flagEmoji: '🎹',
     icon: 'Music',
     color: '#EC4899', // pink
     level: 'Beginner',
@@ -496,6 +501,7 @@ export const COURSES_DATA: Course[] = [
       },
     ],
   },
+  ...INSTRUMENT_COURSES,
   {
     id: 'course-science',
     subject: 'science',
@@ -655,6 +661,7 @@ export const COURSES_DATA: Course[] = [
       },
     ],
   },
+  ...INFORMATICS_COURSES,
   {
     id: 'course-psychology',
     subject: 'psychology',

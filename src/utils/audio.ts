@@ -183,6 +183,449 @@ class SoundEngine {
       oscHarmonic.stop(now + 1.25);
     } catch (e) {}
   }
+
+  // Play Guitar string pluck (stringNum 1 to 6, fret 0 to 12)
+  playGuitarPluck(stringNum: number, fret = 0) {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+
+      const openFreqs: Record<number, number> = {
+        6: 82.41,   // Low E2
+        5: 110.00,  // A2
+        4: 146.83,  // D3
+        3: 196.00,  // G3
+        2: 246.94,  // B3
+        1: 329.63,  // High E4
+      };
+
+      const baseFreq = openFreqs[stringNum] || 196.00;
+      const freq = baseFreq * Math.pow(2, fret / 12);
+      const now = ctx.currentTime;
+
+      // Primary string oscillator
+      const osc = ctx.createOscillator();
+      const oscHarmonic = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now);
+
+      oscHarmonic.type = 'triangle';
+      oscHarmonic.frequency.setValueAtTime(freq * 2, now);
+
+      // Acoustic wood body filtering: bright pluck that dampens naturally
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(Math.min(freq * 8, 4800), now);
+      filter.frequency.exponentialRampToValueAtTime(Math.max(freq * 1.5, 300), now + 0.8);
+
+      // Attack & decay envelope
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.28, now + 0.015); // sharp pick attack
+      gain.gain.exponentialRampToValueAtTime(0.002, now + 1.6); // smooth resonant ring
+
+      osc.connect(filter);
+      oscHarmonic.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      oscHarmonic.start(now);
+      osc.stop(now + 1.65);
+      oscHarmonic.stop(now + 1.65);
+    } catch (e) {}
+  }
+
+  // Strum a standard guitar chord with realistic pick arpeggiation delay
+  playGuitarChord(chordName: string) {
+    const chordVoicings: Record<string, { stringNum: number; fret: number }[]> = {
+      Em: [
+        { stringNum: 6, fret: 0 },
+        { stringNum: 5, fret: 2 },
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 0 },
+        { stringNum: 1, fret: 0 },
+      ],
+      E: [
+        { stringNum: 6, fret: 0 },
+        { stringNum: 5, fret: 2 },
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 1 },
+        { stringNum: 2, fret: 0 },
+        { stringNum: 1, fret: 0 },
+      ],
+      G: [
+        { stringNum: 6, fret: 3 },
+        { stringNum: 5, fret: 2 },
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 3 },
+        { stringNum: 1, fret: 3 },
+      ],
+      C: [
+        { stringNum: 5, fret: 3 },
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 1 },
+        { stringNum: 1, fret: 0 },
+      ],
+      D: [
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 3 },
+        { stringNum: 1, fret: 2 },
+      ],
+      Dm: [
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 3 },
+        { stringNum: 1, fret: 1 },
+      ],
+      Am: [
+        { stringNum: 5, fret: 0 },
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 1 },
+        { stringNum: 1, fret: 0 },
+      ],
+      A: [
+        { stringNum: 5, fret: 0 },
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 2 },
+        { stringNum: 1, fret: 0 },
+      ],
+      F: [
+        { stringNum: 4, fret: 3 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 1 },
+        { stringNum: 1, fret: 1 },
+      ],
+    };
+
+    const notes = chordVoicings[chordName] || chordVoicings['Em'];
+    notes.forEach((item, index) => {
+      setTimeout(() => {
+        this.playGuitarPluck(item.stringNum, item.fret);
+      }, index * 32); // 32ms brush strum interval
+    });
+  }
+
+  // Play Bass Guitar Note (4-string bass E1, A1, D2, G2)
+  playBassNote(stringNum: number, fret = 0) {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+
+      const openFreqs: Record<number, number> = {
+        4: 41.20, // Low E1
+        3: 55.00, // A1
+        2: 73.42, // D2
+        1: 98.00, // G2
+      };
+
+      const baseFreq = openFreqs[stringNum] || 55.0;
+      const freq = baseFreq * Math.pow(2, fret / 12);
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const sub = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now);
+
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(freq, now);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(450, now);
+      filter.frequency.exponentialRampToValueAtTime(140, now + 0.6);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.35, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.005, now + 1.8);
+
+      osc.connect(filter);
+      sub.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      sub.start(now);
+      osc.stop(now + 1.85);
+      sub.stop(now + 1.85);
+    } catch (e) {}
+  }
+
+  // Play Ukulele pluck (4-string G4, C4, E4, A4)
+  playUkulelePluck(stringNum: number, fret = 0) {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+
+      const openFreqs: Record<number, number> = {
+        4: 392.00, // G4
+        3: 261.63, // C4
+        2: 329.63, // E4
+        1: 440.00, // A4
+      };
+
+      const baseFreq = openFreqs[stringNum] || 329.63;
+      const freq = baseFreq * Math.pow(2, fret / 12);
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.32, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.002, now + 1.1);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 1.15);
+    } catch (e) {}
+  }
+
+  // Play Ukulele Chord
+  playUkuleleChord(chordName: string) {
+    const chordVoicings: Record<string, { stringNum: number; fret: number }[]> = {
+      C: [
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 0 },
+        { stringNum: 1, fret: 3 },
+      ],
+      Am: [
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 0 },
+        { stringNum: 1, fret: 0 },
+      ],
+      F: [
+        { stringNum: 4, fret: 2 },
+        { stringNum: 3, fret: 0 },
+        { stringNum: 2, fret: 1 },
+        { stringNum: 1, fret: 0 },
+      ],
+      G: [
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 3 },
+        { stringNum: 1, fret: 2 },
+      ],
+      G7: [
+        { stringNum: 4, fret: 0 },
+        { stringNum: 3, fret: 2 },
+        { stringNum: 2, fret: 1 },
+        { stringNum: 1, fret: 2 },
+      ],
+    };
+
+    const notes = chordVoicings[chordName] || chordVoicings['C'];
+    notes.forEach((item, index) => {
+      setTimeout(() => {
+        this.playUkulelePluck(item.stringNum, item.fret);
+      }, index * 35);
+    });
+  }
+
+  // Play Drum sound (Kick, Snare, Hi-Hat, Tom, Crash)
+  playDrum(drum: 'kick' | 'snare' | 'hihat' | 'tom' | 'crash') {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      if (drum === 'kick') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(155, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.36);
+      } else if (drum === 'snare') {
+        // Noise burst
+        const bufferSize = ctx.sampleRate * 0.18;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'highpass';
+        noiseFilter.frequency.setValueAtTime(800, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.28, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+
+        // Body tone
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(185, now);
+        osc.frequency.exponentialRampToValueAtTime(95, now + 0.1);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.14);
+        noise.start(now);
+        noise.stop(now + 0.19);
+      } else if (drum === 'hihat') {
+        // Sharp metallic sizzle
+        const bufferSize = ctx.sampleRate * 0.06;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(7000, now);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.06);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.07);
+      } else if (drum === 'tom') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(210, now);
+        osc.frequency.exponentialRampToValueAtTime(88, now + 0.22);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (drum === 'crash') {
+        const bufferSize = ctx.sampleRate * 0.8;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(4500, now);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.85);
+      }
+    } catch (e) {}
+  }
+
+  // Play Violin / Bowed string
+  playViolinNote(freq = 440) {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // Subtle warm vibrato LFO
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(5.5, now); // 5.5 Hz vibrato
+      lfoGain.gain.setValueAtTime(3.5, now);
+      lfo.connect(osc.frequency);
+      lfo.start(now + 0.15);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.24, now + 0.08); // bowed swell
+      gain.gain.exponentialRampToValueAtTime(0.005, now + 1.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 1.25);
+      lfo.stop(now + 1.25);
+    } catch (e) {}
+  }
+
+  // Play Saxophone note
+  playSaxNote(freq = 349.23) {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, now);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1200, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.26, now + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.1);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 1.15);
+    } catch (e) {}
+  }
 }
 
 export const sound = new SoundEngine();
