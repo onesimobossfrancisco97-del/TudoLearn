@@ -144,8 +144,8 @@ export const AiTutorModal: React.FC<AiTutorModalProps> = ({
           )}
         </div>
 
-        {/* Quick Suggestion Chips */}
-        <div className="px-4 py-2 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto no-scrollbar">
+        {/* Quick Suggestion Chips (Wrap Downward, No Horizontal Scrolling) */}
+        <div className="px-4 py-2 bg-white border-t border-slate-100 flex flex-wrap gap-1.5">
           <button
             onClick={() => handleQuickQuestion('Can you give me a mnemonic to remember this?')}
             className="text-[11px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-colors cursor-pointer"

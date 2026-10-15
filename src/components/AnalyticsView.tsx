@@ -6,16 +6,21 @@ import {
   Download,
   Wifi,
   WifiOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { UserProfile, Course } from '../types';
+import { useMenuClickSound, sound } from '../utils/audio';
+import { AppLanguage, t } from '../utils/i18n';
 
 interface AnalyticsViewProps {
   user: UserProfile;
   courses: Course[];
-  onOpenCertificate: (course: Course) => void;
+  onOpenCertificate: (course: Course, level?: number) => void;
   onToggleOfflineCourse: (courseId: string) => void;
   isSimulatedOffline: boolean;
   onToggleSimulateOffline: () => void;
+  appLanguage?: AppLanguage;
 }
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
@@ -25,7 +30,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   onToggleOfflineCourse,
   isSimulatedOffline,
   onToggleSimulateOffline,
+  appLanguage = 'en',
 }) => {
+  const { isClickSoundEnabled, toggleClickSound } = useMenuClickSound();
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const dailyActivity = [12, 18, 15, 22, 15, 8, 20];
 
@@ -152,34 +159,116 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         </div>
       </div>
 
+      {/* Audio & Sound Preferences */}
+      <div className="bg-white border-2 border-slate-200 hover:border-blue-200 rounded-3xl p-5 mb-6 shadow-xs transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className={`p-2.5 rounded-2xl ${
+                isClickSoundEnabled
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-400'
+              }`}
+            >
+              {isClickSoundEnabled ? (
+                <Volume2 className="w-5 h-5" />
+              ) : (
+                <VolumeX className="w-5 h-5" />
+              )}
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-800">Menu & Button Clicking Sounds</h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Play subtle audible pops when tapping menus and buttons
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const next = toggleClickSound();
+              if (next) sound.playClick();
+            }}
+            className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer ${
+              isClickSoundEnabled
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200'
+            }`}
+          >
+            {isClickSoundEnabled ? 'Audio ON' : 'Audio OFF'}
+          </button>
+        </div>
+      </div>
+
       {/* Mastery Certificates */}
       <div className="bg-white border-2 border-slate-200 hover:border-blue-200 rounded-3xl p-5 shadow-xs transition-colors">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-2">
           <Award className="w-5 h-5 text-amber-500" />
-          <h2 className="text-sm font-black text-slate-800">Course Completion Certificates</h2>
+          <h2 className="text-sm font-black text-slate-800">{t('header.my_certificates', appLanguage)}</h2>
         </div>
-        <p className="text-xs text-slate-500 font-bold mb-4">
-          Complete courses to generate your official signed credentials for your portfolio or CV.
+        <p className="text-xs text-slate-500 font-semibold mb-4">
+          Earn official verified diplomas and capstone master credentials upon completing Level 5 and Level 10 milestones.
         </p>
 
-        <div className="space-y-2.5">
-          {courses.slice(0, 3).map((c) => (
+        <div className="space-y-3">
+          {courses.slice(0, 4).map((c) => (
             <div
               key={c.id}
-              className="p-3 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-200"
+              className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5"
             >
-              <div>
-                <div className="text-xs font-black text-slate-800">{c.title}</div>
-                <div className="text-[10px] text-slate-400 font-bold">{c.level} Mastery</div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{c.flagEmoji || '📘'}</span>
+                  <div>
+                    <div className="text-xs font-black text-slate-900">{c.title}</div>
+                    <div className="text-[10px] text-slate-400 font-bold">10 Levels • {c.level}</div>
+                  </div>
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => onOpenCertificate(c)}
-                className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black shadow-xs transition-colors cursor-pointer"
-              >
-                View Certificate
-              </button>
+              {/* Two milestone certificates: Level 5 and Level 10 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                {/* Level 5 Intermediate Diploma */}
+                <div className="bg-white p-2.5 rounded-xl border border-amber-200 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded inline-block mb-0.5">
+                      Level 5 Milestone
+                    </div>
+                    <div className="text-xs font-black text-slate-800">Intermediate Diploma</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      onOpenCertificate(c, 5);
+                    }}
+                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-black transition-colors cursor-pointer"
+                  >
+                    View
+                  </button>
+                </div>
+
+                {/* Level 10 Master Certification */}
+                <div className="bg-white p-2.5 rounded-xl border border-blue-200 flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded inline-block mb-0.5">
+                      Level 10 Capstone
+                    </div>
+                    <div className="text-xs font-black text-slate-800">Master Certificate</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      onOpenCertificate(c, 10);
+                    }}
+                    className="px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-[11px] font-black shadow-2xs transition-colors cursor-pointer"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

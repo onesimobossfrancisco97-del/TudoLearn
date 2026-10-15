@@ -133,12 +133,12 @@ export const PaymentConfigModal: React.FC<PaymentConfigModalProps> = ({
               type="url"
               value={config.yearlyPaymentUrl}
               onChange={(e) => setConfig({ ...config, yearlyPaymentUrl: e.target.value })}
-              placeholder="https://buy.stripe.com/your_yearly_link"
+              placeholder="https://tudolearnc.lemonsqueezy.com/checkout/buy/0b5522e6-c1f1-4d9e-b993-3671d72aff45"
               className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-hidden text-xs font-mono text-slate-800"
               required
             />
             <p className="text-[10px] text-slate-400 mt-1">
-              Paste your Stripe Payment Link created for the Annual Super membership.
+              Lemon Squeezy or Stripe checkout link for the Annual Super membership ($59.99/year).
             </p>
           </div>
 
@@ -163,10 +163,13 @@ export const PaymentConfigModal: React.FC<PaymentConfigModalProps> = ({
               type="url"
               value={config.monthlyPaymentUrl}
               onChange={(e) => setConfig({ ...config, monthlyPaymentUrl: e.target.value })}
-              placeholder="https://buy.stripe.com/your_monthly_link"
+              placeholder="https://tudolearnc.lemonsqueezy.com/checkout/buy/a83a32e9-4993-4960-95be-356aa71ba2be"
               className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-hidden text-xs font-mono text-slate-800"
               required
             />
+            <p className="text-[10px] text-slate-400 mt-1">
+              Lemon Squeezy or Stripe checkout link for the Monthly Super membership ($9.99/month).
+            </p>
           </div>
 
           {/* Toggle Direct Redirect */}
@@ -174,7 +177,7 @@ export const PaymentConfigModal: React.FC<PaymentConfigModalProps> = ({
             <div>
               <div className="text-xs font-black text-slate-800">Direct Checkout Redirect</div>
               <div className="text-[11px] text-slate-500 font-semibold">
-                Open payment link immediately when user taps "Subscribe"
+                Open checkout link immediately when user taps "Subscribe"
               </div>
             </div>
             <input
@@ -189,18 +192,18 @@ export const PaymentConfigModal: React.FC<PaymentConfigModalProps> = ({
           <div className="bg-sky-50 border border-sky-200 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center gap-2 text-sky-900 text-xs font-black">
               <Info className="w-4 h-4 text-sky-600 shrink-0" />
-              <span>How to set up in Stripe Dashboard (3 Steps):</span>
+              <span>Checkout Setup Information:</span>
             </div>
             <ol className="text-[11px] text-sky-800 font-medium space-y-1 list-decimal list-inside pl-1">
-              <li>Log into <strong>dashboard.stripe.com/payment-links</strong> and click <strong>New</strong>.</li>
-              <li>Add product <em>"Super TudoLearn"</em> with price $4.99/mo or $59.99/yr.</li>
-              <li>Under <strong>Confirmation Page</strong>, select <em>Don't show confirmation page</em> & paste the Return URL below.</li>
+              <li>Configured with <strong>Lemon Squeezy</strong> checkout links for secure multi-currency payments.</li>
+              <li>Customers can pay via Credit/Debit Cards, Apple Pay, Google Pay, and PayPal.</li>
+              <li>Set Lemon Squeezy Redirect URL to the return URL below to activate Super features immediately after payment.</li>
             </ol>
 
             {/* Return URL copy box */}
             <div className="mt-2 pt-2 border-t border-sky-200/60">
               <div className="text-[10px] font-black uppercase text-sky-700 mb-1">
-                Stripe Success / Return URL:
+                Checkout Success / Return URL:
               </div>
               <div className="flex items-center gap-2 bg-white rounded-xl border border-sky-300 p-2">
                 <code className="text-[10px] text-slate-700 truncate flex-1 font-mono">

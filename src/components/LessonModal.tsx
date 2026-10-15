@@ -11,6 +11,7 @@ import {
   MicOff,
   Radio,
   Volume2,
+  BookOpen,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { LessonNode, Exercise } from '../types';
@@ -23,6 +24,7 @@ import { DrumBeatExercise } from './exercises/DrumBeatExercise';
 import { MathSolveExercise } from './exercises/MathSolveExercise';
 import { MascotPip } from './MascotPip';
 import { AiTutorModal } from './AiTutorModal';
+import { LessonStudyGuideModal } from './LessonStudyGuideModal';
 import { sound } from '../utils/audio';
 
 interface LessonModalProps {
@@ -62,6 +64,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [showAiTutor, setShowAiTutor] = useState(false);
+  const [showStudyGuide, setShowStudyGuide] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [mistakesCount, setMistakesCount] = useState(0);
 
@@ -243,8 +246,22 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           </button>
         )}
 
+        {/* Review Study Notes Button */}
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setShowStudyGuide(true);
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+          title="Review Study Notes & Concepts"
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Notes</span>
+        </button>
+
         {/* Hearts Indicator */}
-        <div className="flex items-center gap-1.5 font-black text-rose-500">
+        <div className="flex items-center gap-1.5 font-black text-rose-500 shrink-0">
           <Heart className="w-5 h-5 fill-rose-500" />
           <span className="text-sm">
             {isSuper ? '∞' : hearts}
@@ -498,6 +515,18 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           topic={currentExercise?.topic}
         />
       )}
+
+      {/* In-Lesson Concept Notes & Flashcards Hub */}
+      <LessonStudyGuideModal
+        isOpen={showStudyGuide}
+        lesson={lesson}
+        onClose={() => setShowStudyGuide(false)}
+        onStartQuiz={() => setShowStudyGuide(false)}
+        onOpenAiTutor={() => {
+          setShowStudyGuide(false);
+          setShowAiTutor(true);
+        }}
+      />
     </div>
   );
 };

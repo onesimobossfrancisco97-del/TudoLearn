@@ -40,13 +40,18 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { DailyChallengeModal } from './components/DailyChallengeModal';
 import { getDailyChallengeForDate, getTodayDateKey } from './data/dailyChallengesData';
 import { sound } from './utils/audio';
+import { enhanceAllCoursesWithTenLevels } from './utils/courseCurriculum';
+import { AppLanguage, getStoredLanguage, saveStoredLanguage } from './utils/i18n';
 
 export default function App() {
   const [user, setUser] = useState(() => getUserProfile());
-  const [courses, setCourses] = useState<Course[]>(COURSES_DATA);
+  const [courses, setCourses] = useState<Course[]>(() => enhanceAllCoursesWithTenLevels(COURSES_DATA));
   const [currentTab, setCurrentTab] = useState<TabType>('learn');
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(() => getCommunityPosts());
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>(INITIAL_LEADERBOARD);
+
+  // App native interface language (e.g., English, Portuguese, Spanish, French, German, Italian)
+  const [appLanguage, setAppLanguage] = useState<AppLanguage>(() => user.nativeLanguage || getStoredLanguage());
 
   // Firebase user state
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -58,6 +63,7 @@ export default function App() {
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateCourse, setCertificateCourse] = useState<Course | null>(null);
+  const [certificateLevel, setCertificateLevel] = useState<number>(10);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
   const [isSimulatedOffline, setIsSimulatedOffline] = useState(false);
@@ -71,7 +77,12 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment_success') === 'true' || urlParams.get('plan') === 'super') {
+    if (
+      urlParams.get('payment_success') === 'true' ||
+      urlParams.get('plan') === 'super' ||
+      urlParams.get('checkout') === 'success' ||
+      urlParams.get('order_id')
+    ) {
       sound.playLevelUp();
       confetti({
         particleCount: 200,
@@ -225,6 +236,35 @@ export default function App() {
     setLeaderboardUsers((prev) =>
       prev.map((u) => (u.isCurrentUser ? { ...u, xp: u.xp + earnedXp, streak: u.streak + 1 } : u))
     );
+
+    // Check if user completed Level 5 checkpoint or Level 10 checkpoint to award official certificate
+    const isLevel5Checkpoint = lessonId.includes('-5-');
+    const isLevel10Checkpoint = lessonId.includes('-10-');
+    if (isLevel5Checkpoint || isLevel10Checkpoint) {
+      const milestoneLvl = isLevel5Checkpoint ? 5 : 10;
+      setCertificateCourse(currentCourse);
+      setCertificateLevel(milestoneLvl);
+      setTimeout(() => {
+        sound.playLevelUp();
+        confetti({
+          particleCount: 160,
+          spread: 90,
+          origin: { y: 0.4 },
+          colors: ['#2563EB', '#F59E0B', '#10B981', '#6366F1'],
+        });
+        setShowCertificateModal(true);
+      }, 700);
+    }
+  };
+
+  // Native language selector handler
+  const handleSelectAppLanguage = (lang: AppLanguage) => {
+    setAppLanguage(lang);
+    saveStoredLanguage(lang);
+    setUser((prev) => ({
+      ...prev,
+      nativeLanguage: lang,
+    }));
   };
 
   // Heart loss handler
@@ -383,11 +423,12 @@ export default function App() {
 
   // Teacher studio: publish course
   const handlePublishCourse = (newCourse: Course) => {
-    setCourses((prev) => [newCourse, ...prev]);
+    const fullCourse = enhanceAllCoursesWithTenLevels([newCourse])[0];
+    setCourses((prev) => [fullCourse, ...prev]);
     setUser((prev) => ({
       ...prev,
-      currentCourseId: newCourse.id,
-      currentSubject: newCourse.subject,
+      currentCourseId: fullCourse.id,
+      currentSubject: fullCourse.subject,
     }));
   };
 
@@ -418,33 +459,49 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/20 to-blue-50/30 flex flex-col font-sans">
-      {/* Top Header */}
-      <HeaderNav
-        courses={courses}
-        currentCourse={currentCourse}
-        onSelectCourse={handleSelectCourse}
-        streak={user.streak}
-        gems={user.gems}
-        hearts={user.hearts}
-        todayMinutes={user.todayMinutes}
-        dailyGoalMinutes={user.dailyGoalMinutes}
-        onUpdateDailyGoal={(minutes) => setUser((prev) => ({ ...prev, dailyGoalMinutes: minutes }))}
-        isSuper={user.isSuper}
-        isSimulatedOffline={isSimulatedOffline}
-        onOpenSuperModal={() => setShowSuperModal(true)}
-        onOpenAiTutor={() => setShowAiTutor(true)}
-        onOpenAiTools={() => setShowAiTools(true)}
-        firebaseUser={firebaseUser}
-        onSignInGoogle={handleSignInGoogle}
-        onSignOut={handleSignOut}
-        onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
-        isDailyChallengeCompleted={isDailyChallengeCompleted}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/20 to-blue-50/30 flex flex-col font-sans w-full max-w-full overflow-x-hidden">
+      {/* Navigation: Desktop Left Sidebar (Flows Down) & Mobile Bottom Dock */}
+      <NavigationDock
+        currentTab={currentTab}
+        onChangeTab={setCurrentTab}
+        appLanguage={appLanguage}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
-        {currentTab === 'learn' && (
+      <div className="flex-1 flex flex-col md:pl-64 min-w-0 w-full max-w-full overflow-x-hidden transition-all duration-200">
+        {/* Top Header */}
+        <HeaderNav
+          courses={courses}
+          currentCourse={currentCourse}
+          onSelectCourse={handleSelectCourse}
+          streak={user.streak}
+          gems={user.gems}
+          hearts={user.hearts}
+          todayMinutes={user.todayMinutes}
+          dailyGoalMinutes={user.dailyGoalMinutes}
+          onUpdateDailyGoal={(minutes) => setUser((prev) => ({ ...prev, dailyGoalMinutes: minutes }))}
+          isSuper={user.isSuper}
+          isSimulatedOffline={isSimulatedOffline}
+          onOpenSuperModal={() => setShowSuperModal(true)}
+          onOpenAiTutor={() => setShowAiTutor(true)}
+          onOpenAiTools={() => setShowAiTools(true)}
+          firebaseUser={firebaseUser}
+          onSignInGoogle={handleSignInGoogle}
+          onSignOut={handleSignOut}
+          onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
+          isDailyChallengeCompleted={isDailyChallengeCompleted}
+          onOpenManagementTab={() => setCurrentTab('studio')}
+          appLanguage={appLanguage}
+          onSelectAppLanguage={handleSelectAppLanguage}
+          onOpenCertificates={() => {
+            setCertificateCourse(currentCourse);
+            setCertificateLevel(5);
+            setShowCertificateModal(true);
+          }}
+        />
+
+        {/* Main Content Area (Restricted strictly to vertical flow) */}
+        <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 md:pb-12 overflow-x-hidden">
+          {currentTab === 'learn' && (
           <LearningPath
             course={currentCourse}
             completedLessonIds={user.completedLessonIds}
@@ -454,6 +511,13 @@ export default function App() {
             dailyChallenge={dailyChallenge}
             user={user}
             onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
+            onOpenSuperModal={() => setShowSuperModal(true)}
+            onOpenCertificate={(course, level) => {
+              setCertificateCourse(course);
+              setCertificateLevel(level);
+              setShowCertificateModal(true);
+            }}
+            appLanguage={appLanguage}
           />
         )}
 
@@ -497,13 +561,15 @@ export default function App() {
           <AnalyticsView
             user={user}
             courses={courses}
-            onOpenCertificate={(course) => {
+            onOpenCertificate={(course, level = 10) => {
               setCertificateCourse(course);
+              setCertificateLevel(level);
               setShowCertificateModal(true);
             }}
             onToggleOfflineCourse={handleToggleOfflineCourse}
             isSimulatedOffline={isSimulatedOffline}
             onToggleSimulateOffline={() => setIsSimulatedOffline(!isSimulatedOffline)}
+            appLanguage={appLanguage}
           />
         )}
 
@@ -514,12 +580,7 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* Navigation Dock */}
-      <NavigationDock
-        currentTab={currentTab}
-        onChangeTab={setCurrentTab}
-      />
+      </div>
 
       {/* Active Lesson Modal */}
       {activeLesson && (
@@ -572,6 +633,9 @@ export default function App() {
           studentName={user.name}
           courseTitle={certificateCourse.title}
           subjectName={certificateCourse.subject}
+          level={certificateLevel}
+          tier={certificateLevel === 5 ? 'intermediate' : 'master'}
+          lang={appLanguage}
         />
       )}
 

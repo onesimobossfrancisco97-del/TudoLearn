@@ -78,8 +78,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
+      {/* Filter Tabs (Flows Downward, No Horizontal Scrolling) */}
+      <div className="flex flex-wrap gap-1.5 pb-2 mb-4">
         {['all', 'informatics', 'languages', 'mathematics', 'music', 'science', 'coding', 'psychology'].map((sub) => (
           <button
             key={sub}

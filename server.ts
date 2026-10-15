@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -52,8 +53,8 @@ Give a short, friendly, bite-sized explanation (2-3 sentences max) explaining WH
 
     let fallbackText = `Here's a quick tip: In ${subject}, "${correctAnswer}" is correct because it follows the core rule for ${topic}. Practice makes progress!`;
     return res.json({ explanation: fallbackText, source: 'fallback' });
-  } catch (error: any) {
-    return res.status(500).json({ explanation: 'Every mistake is a step toward mastering this skill.', error: error.message });
+  } catch (error) {
+    return res.status(500).json({ explanation: 'Every mistake is a step toward mastering this skill.', error: (error as any)?.message });
   }
 });
 
@@ -83,8 +84,8 @@ app.post('/api/ai/transcribe-speech', async (req: Request, res: Response) => {
     }
 
     return res.json({ transcript: req.body.fallbackText || 'Buenos días', source: 'fallback' });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message, transcript: '' });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message, transcript: '' });
   }
 });
 
@@ -120,8 +121,8 @@ Respond in valid JSON format: { "score": number, "feedback": "string", "tips": "
       feedback: match ? 'Flawless pronunciation!' : 'Sounded very clear and authentic!',
       tips: 'Keep up the rhythm and steady breath!',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message });
   }
 });
 
@@ -143,8 +144,8 @@ app.post('/api/ai/generate-music', async (req: Request, res: Response) => {
           model: 'lyria-3-clip-preview',
           message: 'Generated personalized study track!',
         });
-      } catch (lyriaErr: any) {
-        console.warn('Lyria API note:', lyriaErr.message);
+      } catch (lyriaErr) {
+        console.warn('Lyria API note:', (lyriaErr as Error)?.message);
       }
     }
 
@@ -154,8 +155,8 @@ app.post('/api/ai/generate-music', async (req: Request, res: Response) => {
       model: 'synthesizer-ambient',
       message: 'Synthesized harmonic ambient study clip.',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error)?.message });
   }
 });
 
@@ -176,8 +177,8 @@ app.post('/api/ai/generate-image', async (req: Request, res: Response) => {
           imageUrl: response.text || '',
           model: 'gemini-nano-banana-2.1',
         });
-      } catch (imgErr: any) {
-        console.warn('Image generation note:', imgErr.message);
+      } catch (imgErr) {
+        console.warn('Image generation note:', (imgErr as Error)?.message);
       }
     }
 
@@ -187,8 +188,8 @@ app.post('/api/ai/generate-image', async (req: Request, res: Response) => {
       model: 'preset-curated',
       fallback: true,
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as Error)?.message });
   }
 });
 
@@ -211,8 +212,8 @@ app.post('/api/ai/generate-video', async (req: Request, res: Response) => {
           aspectRatio: targetAspect,
           model: 'veo-3.1-fast-generate-preview',
         });
-      } catch (veoErr: any) {
-        console.warn('Veo API note:', veoErr.message);
+      } catch (veoErr) {
+        console.warn('Veo API note:', (veoErr as Error)?.message);
       }
     }
 
@@ -222,8 +223,8 @@ app.post('/api/ai/generate-video', async (req: Request, res: Response) => {
       aspectRatio: targetAspect,
       model: 'veo-3.1-fast-generate-preview-demo',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message });
   }
 });
 
@@ -258,8 +259,8 @@ app.post('/api/ai/search-knowledge', async (req: Request, res: Response) => {
       sources: [{ title: 'Google Knowledge Graph', uri: 'https://google.com' }],
       model: 'fallback',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message });
   }
 });
 
@@ -287,8 +288,8 @@ app.post('/api/ai/cultural-places', async (req: Request, res: Response) => {
       placesText: `Top immersive cultural spots in Madrid: 1. Plaza Mayor (Practice ordering café con leche), 2. Museo del Prado (Art terminology), 3. Parque del Retiro (Conversational walking meetups).`,
       model: 'fallback',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message });
   }
 });
 
@@ -318,14 +319,19 @@ Respond in 1-2 natural, spoken sentences as if in a live voice conversation. Kee
       reply: `You sounded fantastic! Practicing speaking in ${subject} builds real confidence. Tell me more!`,
       model: 'live-fallback',
     });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+  } catch (error) {
+    return res.status(500).json({ error: (error as any)?.message });
   }
+});
+
+// Health check endpoints for Cloud Run and platform probes
+app.get(['/health', '/healthz', '/_ah/health'], (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
 
 // Setup Vite middleware in dev or static files in production
 async function startServer() {
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = process.env.NODE_ENV === 'development';
   const httpServer = http.createServer(app);
 
   if (isDev) {
@@ -341,17 +347,32 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    const distPath = path.resolve(__dirname, 'dist');
+    const indexPath = path.resolve(distPath, 'index.html');
+
+    app.use(express.static(distPath));
+    app.get('*', (_req: Request, res: Response) => {
+      res.sendFile(indexPath, (err) => {
+        if (err && !res.headersSent) {
+          res.status(200).send(`<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>OmniQuest</title></head><body><div id="root"></div></body></html>`);
+        }
+      });
     });
   }
 
   httpServer.listen(port, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${port}`);
+    console.log(`Server running on http://0.0.0.0:${port} [env: ${process.env.NODE_ENV || 'production'}]`);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    httpServer.close(() => {
+      process.exit(0);
+    });
   });
 }
 
 startServer().catch((err) => {
   console.error('Failed to start server:', err);
+  process.exit(1);
 });

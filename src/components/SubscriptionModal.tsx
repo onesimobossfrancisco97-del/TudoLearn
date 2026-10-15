@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, ShieldCheck, Zap, Heart, Download, Sparkles, CreditCard, ExternalLink, Settings, Link2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import {
+  X,
+  Check,
+  ShieldCheck,
+  Zap,
+  Heart,
+  Download,
+  Sparkles,
+  CreditCard,
+  ExternalLink,
+  Settings,
+  Link2,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sound } from '../utils/audio';
 import { PaymentConfig } from '../types';
@@ -11,40 +24,41 @@ interface SubscriptionModalProps {
   onClose: () => void;
   onSubscribeSuccess: () => void;
   isAlreadySuper?: boolean;
+  /**
+   * Only true when opened explicitly from the owner/management dashboard.
+   * Regular users and students will NEVER see or access the "Edit Link" option.
+   */
+  isManagement?: boolean;
 }
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   isOpen,
   onClose,
   onSubscribeSuccess,
-  isAlreadySuper = false,
+  isAlreadySuper: _isAlreadySuper = false,
+  isManagement = false,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'yearly' | 'monthly'>('yearly');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe_link' | 'card' | 'apple_pay' | 'google_pay'>('stripe_link');
-  const [cardNumber] = useState('4242 •••• •••• 4242');
+  const [paymentMethod, setPaymentMethod] = useState<'lemonsqueezy' | 'card'>('lemonsqueezy');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => getPaymentConfig());
 
   useEffect(() => {
+    setMounted(true);
     fetchRemotePaymentConfig().then((remote) => {
       if (remote) setPaymentConfig(remote);
     });
   }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  const currentPaymentUrl = billingCycle === 'yearly'
-    ? paymentConfig.yearlyPaymentUrl
-    : paymentConfig.monthlyPaymentUrl;
-
-  const handleOpenPaymentLink = () => {
-    sound.playClick();
-    if (currentPaymentUrl && currentPaymentUrl.startsWith('http')) {
-      window.open(currentPaymentUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
+  const currentPaymentUrl =
+    billingCycle === 'yearly'
+      ? paymentConfig.yearlyPaymentUrl
+      : paymentConfig.monthlyPaymentUrl;
 
   const handleSimulatedCheckout = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -63,140 +77,154 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       setTimeout(() => {
         onSubscribeSuccess();
         onClose();
-      }, 1800);
-    }, 1200);
+      }, 1600);
+    }, 1000);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border-4 border-blue-400 overflow-hidden relative my-6 animate-scale-up">
-        {/* Close Button */}
-        <button
-          onClick={() => {
-            sound.playClick();
-            onClose();
-          }}
-          className="absolute top-4 right-4 z-20 p-2 bg-black/20 hover:bg-black/30 text-white rounded-full transition-colors cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const handleClose = () => {
+    sound.playClick();
+    onClose();
+  };
 
-        {/* Hero Header with Royal Blue Gradient */}
-        <div className="bg-gradient-to-br from-blue-700 via-indigo-600 to-sky-500 p-6 sm:p-8 text-white text-center relative overflow-hidden">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-xs text-xs font-black uppercase tracking-wider mb-2 border border-white/20">
-            <Zap className="w-3.5 h-3.5 fill-yellow-300 text-yellow-300" />
-            Super TudoLearn
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fade-in w-full h-full overflow-hidden">
+      {/* Backdrop tap to dismiss */}
+      <div
+        className="absolute inset-0 -z-10 cursor-pointer"
+        onClick={handleClose}
+        aria-hidden="true"
+      />
+
+      {/* Compact Pop-up Bubble: Fits fully on mobile screens, X button ALWAYS visible */}
+      <div className="relative w-full max-w-sm sm:max-w-md bg-white border-2 sm:border-3 border-blue-500 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-scale-up">
+        {/* Fixed Header with ALWAYS VISIBLE high-contrast Exit Button */}
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-600 to-sky-500 p-3.5 sm:p-4 text-white flex items-center justify-between shrink-0 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-xs">
+              <Zap className="w-5 h-5 text-amber-300 fill-amber-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm sm:text-base font-black tracking-wide">Super TudoLearn</span>
+                <span className="text-[9px] bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  PREMIUM
+                </span>
+              </div>
+              <p className="text-[10px] text-blue-100 font-medium">Unlock full mastery & unlimited study</p>
+            </div>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Supercharge Your Learning
-          </h2>
-          <p className="text-xs sm:text-sm text-blue-100 font-semibold mt-1 max-w-xs mx-auto">
-            Unlimited hearts, offline downloads, ad-free focus, and tailored AI mentoring.
-          </p>
+
+          {/* Prominent High-Contrast Close Button */}
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Close modal"
+            className="p-2 bg-black/25 hover:bg-black/45 active:scale-90 rounded-full text-white cursor-pointer transition-all border border-white/30 shrink-0"
+          >
+            <X className="w-5 h-5 stroke-[2.5]" />
+          </button>
         </div>
 
-        {/* Content Body */}
-        <div className="p-6">
+        {/* Modal Scrollable Body (Strictly vertical downward scroll) */}
+        <div className="p-3.5 sm:p-4.5 space-y-3 overflow-y-auto flex-1">
           {showSuccess ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                <Check className="w-10 h-10 stroke-[3]" />
+            <div className="text-center py-6 space-y-3">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <Check className="w-8 h-8 stroke-[3]" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900">Welcome to Super TudoLearn!</h3>
-              <p className="text-sm font-bold text-slate-500 mt-1">
-                Your 7-day free trial is now active. Enjoy limitless practice!
+              <h4 className="text-lg font-black text-slate-900">Welcome to Super TudoLearn!</h4>
+              <p className="text-xs text-slate-600 font-medium max-w-xs mx-auto">
+                Unlimited hearts and offline learning have been unlocked on your account.
               </p>
             </div>
           ) : (
             <>
-              {/* Feature Highlights */}
-              <div className="space-y-3 mb-6">
-                {[
-                  { icon: Heart, text: 'Unlimited Hearts — Never pause your study flow', color: 'text-rose-500' },
-                  { icon: Zap, text: '100% Ad-Free uninterrupted learning', color: 'text-amber-500' },
-                  { icon: Download, text: 'Offline Mode — Download lessons for flights and travel', color: 'text-blue-600' },
-                  { icon: Sparkles, text: 'Unlimited Pip AI Tutor explanations & speech coaching', color: 'text-indigo-600' },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="p-1.5 rounded-xl bg-slate-100">
-                      <item.icon className={`w-4 h-4 ${item.color}`} />
-                    </div>
-                    <span className="text-xs sm:text-sm font-black text-slate-700">
-                      {item.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Plan Switcher */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <button
-                  type="button"
-                  onClick={() => setBillingCycle('yearly')}
-                  className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
-                    billingCycle === 'yearly'
-                      ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-400 font-black'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <span className="absolute -top-2.5 right-3 bg-blue-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">
-                    SAVE 50%
-                  </span>
-                  <div className="text-xs font-black text-slate-500 uppercase">12 Months</div>
-                  <div className="text-lg font-black text-slate-900">$4.99<span className="text-xs text-slate-500 font-semibold">/mo</span></div>
-                  <div className="text-[10px] text-blue-700 font-bold">$59.99 billed annually</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                    billingCycle === 'monthly'
-                      ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-400 font-black'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="text-xs font-black text-slate-500 uppercase">Monthly</div>
-                  <div className="text-lg font-black text-slate-900">$9.99<span className="text-xs text-slate-500 font-semibold">/mo</span></div>
-                  <div className="text-[10px] text-slate-500 font-bold">Cancel anytime</div>
-                </button>
-              </div>
-
-              {/* Payment Provider & Settings Banner */}
-              <div className="flex items-center justify-between px-3 py-2 bg-blue-50/70 border border-blue-200/80 rounded-2xl mb-4">
+              {/* Feature Highlights (Compact list) */}
+              <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-2.5 space-y-1.5 text-xs text-slate-700 font-bold">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] font-black text-blue-900 capitalize">
-                    {paymentConfig.provider} Payment Link Active
-                  </span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Unlock all 10 Levels in every course (Levels 3-10)</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    setShowConfigModal(true);
-                  }}
-                  className="inline-flex items-center gap-1 text-[11px] font-black text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-100 px-2.5 py-1 rounded-xl border border-blue-200 transition-colors cursor-pointer"
-                >
-                  <Settings className="w-3 h-3 text-blue-600" />
-                  <span>Configure Link</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span>Earn official Level 5 & Level 10 Certificates</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 shrink-0" />
+                  <span>Unlimited Hearts (Never run out during lessons)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Download className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                  <span>Offline Mode (Learn anywhere with no Wi-Fi)</span>
+                </div>
               </div>
 
-              {/* Payment Methods */}
-              <div className="flex gap-2 mb-4">
+              {/* Billing Cycle Options (Compact Cards) */}
+              <div>
+                <label className="text-[10px] uppercase font-black tracking-wider text-slate-400 block mb-1">
+                  Choose Plan
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setBillingCycle('yearly');
+                    }}
+                    className={`p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
+                      billingCycle === 'yearly'
+                        ? 'border-blue-600 bg-blue-50/60 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <span className="absolute -top-2 right-2 bg-amber-400 text-slate-950 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase">
+                      Save 50%
+                    </span>
+                    <div className="text-xs font-black text-slate-900">Annual Plan</div>
+                    <div className="text-sm font-black text-blue-700 mt-0.5">
+                      $4.99<span className="text-[10px] text-slate-500 font-bold">/mo</span>
+                    </div>
+                    <div className="text-[9px] text-slate-500 font-bold mt-0.5">$59.99 billed yearly</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setBillingCycle('monthly');
+                    }}
+                    className={`p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      billingCycle === 'monthly'
+                        ? 'border-blue-600 bg-blue-50/60 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <div className="text-xs font-black text-slate-900">Monthly Plan</div>
+                    <div className="text-sm font-black text-blue-700 mt-0.5">
+                      $9.99<span className="text-[10px] text-slate-500 font-bold">/mo</span>
+                    </div>
+                    <div className="text-[9px] text-slate-500 font-bold mt-0.5">Cancel anytime</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Methods (Compact Pills) */}
+              {/* Payment Methods (Compact Pills) */}
+              <div className="flex gap-1.5">
                 {[
-                  { id: 'stripe_link', label: 'Payment Link', icon: Link2 },
-                  { id: 'card', label: 'Credit Card', icon: CreditCard },
-                  { id: 'apple_pay', label: 'Apple Pay' },
+                  { id: 'lemonsqueezy', label: 'Lemon Squeezy Checkout' },
+                  { id: 'card', label: 'Cards / Apple Pay' },
                 ].map((pm) => (
                   <button
                     key={pm.id}
                     type="button"
-                    onClick={() => setPaymentMethod(pm.id as any)}
-                    className={`flex-1 py-2 px-1 text-xs font-black rounded-xl border-2 transition-all cursor-pointer text-center ${
+                    onClick={() => {
+                      sound.playClick();
+                      setPaymentMethod(pm.id as any);
+                    }}
+                    className={`flex-1 py-1.5 px-1 text-[11px] font-black rounded-xl border transition-all cursor-pointer text-center ${
                       paymentMethod === pm.id
-                        ? 'border-blue-600 bg-blue-50 text-blue-900 ring-1 ring-blue-400'
+                        ? 'border-blue-600 bg-blue-50 text-blue-900 font-extrabold'
                         : 'border-slate-200 bg-slate-50 text-slate-600'
                     }`}
                   >
@@ -205,84 +233,86 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 ))}
               </div>
 
-              {paymentMethod === 'stripe_link' && (
-                <div className="space-y-2 mb-6 bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-500">Target Payment URL:</span>
+              {/* Clean Student-Facing Payment Badge (No Edit Link on user side) */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-black text-slate-800">Lemon Squeezy Checkout</div>
+                      <div className="text-[10px] text-slate-500 font-medium">
+                        Accepts Cards, Apple Pay, Google Pay & PayPal
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
+                    256-Bit SSL
+                  </span>
+                </div>
+
+                {/* ONLY show Edit Link if opened from the Management side */}
+                {isManagement && (
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400 font-bold">Admin Controls:</span>
                     <button
                       type="button"
                       onClick={() => setShowConfigModal(true)}
-                      className="text-[10px] text-blue-600 font-bold hover:underline"
+                      className="text-blue-600 font-black hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      Change URL
+                      <Settings className="w-3 h-3" />
+                      <span>Edit Link (Management)</span>
                     </button>
                   </div>
-                  <div className="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 flex items-center gap-2">
-                    <Link2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                    <code className="text-[10px] text-slate-700 font-mono truncate flex-1">
-                      {currentPaymentUrl || 'No payment URL set'}
-                    </code>
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    Buyers are redirected to this hosted page for secure checkout with automatic receipts.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
 
-              {paymentMethod === 'card' && (
-                <div className="space-y-2 mb-6">
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-slate-700">{cardNumber}</span>
-                    <span className="text-xs font-bold text-slate-400">12/28</span>
-                  </div>
-                </div>
-              )}
+              {/* Primary Call to Action */}
+              <div className="space-y-1.5 pt-1">
+                <a
+                  href={currentPaymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => sound.playClick()}
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-500/20 border-b-2 border-blue-900 active:border-b-0 active:translate-y-0.5 transition-all cursor-pointer flex items-center justify-center gap-1.5 no-underline"
+                >
+                  <span>
+                    {billingCycle === 'yearly'
+                      ? 'CHECKOUT YEARLY ($59.99/YR)'
+                      : 'CHECKOUT MONTHLY ($9.99/MO)'}
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
 
-              {/* CTA Checkout Buttons */}
-              {paymentMethod === 'stripe_link' ? (
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={handleOpenPaymentLink}
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-xl shadow-blue-500/20 border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <span>PAY VIA SECURE LINK</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSimulatedCheckout()}
-                    disabled={isProcessing}
-                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl border border-slate-300 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    {isProcessing ? (
-                      <span className="animate-pulse">Activating Super TudoLearn...</span>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Completed Payment / Instant Trial Activation</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
                 <button
                   type="button"
-                  onClick={handleSimulatedCheckout}
+                  onClick={() => handleSimulatedCheckout()}
                   disabled={isProcessing}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:opacity-95 text-white font-black text-base rounded-2xl shadow-xl shadow-blue-500/20 border-b-4 border-blue-900 active:border-b-0 active:translate-y-1 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1"
                 >
                   {isProcessing ? (
-                    <span className="animate-pulse">Activating Super TudoLearn...</span>
+                    <span className="animate-pulse">Activating...</span>
                   ) : (
-                    <span>START 7-DAY FREE TRIAL</span>
+                    <>
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      <span>Instant 7-Day Free Trial</span>
+                    </>
                   )}
                 </button>
-              )}
 
-              <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-400 mt-3 text-center">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                {/* Additional Direct Exit Button */}
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full py-2 text-slate-400 hover:text-slate-600 font-extrabold text-xs transition-colors cursor-pointer text-center"
+                >
+                  ✕ Maybe Later (Exit)
+                </button>
+              </div>
+
+              <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-400 text-center">
+                <ShieldCheck className="w-3 h-3 text-blue-600" />
                 <span>Zero charge today. Cancel easily anytime in settings.</span>
               </div>
             </>
@@ -290,12 +320,15 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         </div>
       </div>
 
-      {/* Payment Configuration Modal */}
-      <PaymentConfigModal
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        onConfigSaved={(updated) => setPaymentConfig(updated)}
-      />
-    </div>
+      {/* Payment Configuration Modal (Only accessible from management side) */}
+      {isManagement && (
+        <PaymentConfigModal
+          isOpen={showConfigModal}
+          onClose={() => setShowConfigModal(false)}
+          onConfigSaved={(updated) => setPaymentConfig(updated)}
+        />
+      )}
+    </div>,
+    document.body
   );
 };

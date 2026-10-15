@@ -145,6 +145,21 @@ export interface DailyChallenge {
   scrambleLetters?: string[];
 }
 
+export type AppLanguage = 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it';
+
+export interface CourseCertificate {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  subjectName: string;
+  level: number; // 5 for Intermediate Diploma, 10 for Master Certification
+  levelTitle: string;
+  tier: 'intermediate' | 'master';
+  studentName: string;
+  issueDate: string;
+  credentialId: string;
+}
+
 export interface UserProfile {
   id?: string;
   name: string;
@@ -170,6 +185,8 @@ export interface UserProfile {
   badges: Badge[];
   lastDailyChallengeDate?: string;
   dailyChallengeStreak?: number;
+  nativeLanguage?: AppLanguage;
+  earnedCertificates?: CourseCertificate[];
 }
 
 export interface PaymentConfig {

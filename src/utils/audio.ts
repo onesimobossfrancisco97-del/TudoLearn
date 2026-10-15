@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 /**
  * OmniQuest Audio & Speech Synthesis Engine
  * Uses Web Audio API for zero-latency game sound effects & music piano notes,
@@ -6,6 +8,40 @@
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
+  private clickSoundEnabled: boolean = true;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('omni_menu_click_sound');
+        if (stored !== null) {
+          this.clickSoundEnabled = stored === 'true';
+        }
+      } catch (e) {}
+    }
+  }
+
+  isClickSoundEnabled(): boolean {
+    return this.clickSoundEnabled;
+  }
+
+  setClickSoundEnabled(enabled: boolean): void {
+    this.clickSoundEnabled = enabled;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('omni_menu_click_sound', String(enabled));
+        window.dispatchEvent(
+          new CustomEvent('menu-click-sound-changed', { detail: { enabled } })
+        );
+      } catch (e) {}
+    }
+  }
+
+  toggleClickSound(): boolean {
+    const nextState = !this.clickSoundEnabled;
+    this.setClickSoundEnabled(nextState);
+    return nextState;
+  }
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -21,8 +57,9 @@ class SoundEngine {
     return this.ctx;
   }
 
-  // Play a gentle UI click pop
+  // Play a gentle UI click pop (only if enabled by student)
   playClick() {
+    if (!this.clickSoundEnabled) return;
     try {
       const ctx = this.getContext();
       if (!ctx) return;
@@ -686,4 +723,33 @@ export function createSpeechRecognizer(
   };
 
   return recognition;
+}
+
+// React Hook to access and toggle menu click sound state
+export function useMenuClickSound() {
+  const [enabled, setEnabled] = useState<boolean>(() => sound.isClickSoundEnabled());
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e?.detail?.enabled !== undefined) {
+        setEnabled(e.detail.enabled);
+      } else {
+        setEnabled(sound.isClickSoundEnabled());
+      }
+    };
+    window.addEventListener('menu-click-sound-changed', handler);
+    return () => window.removeEventListener('menu-click-sound-changed', handler);
+  }, []);
+
+  const toggle = () => {
+    const next = sound.toggleClickSound();
+    setEnabled(next);
+    return next;
+  };
+
+  return {
+    isClickSoundEnabled: enabled,
+    toggleClickSound: toggle,
+    setClickSoundEnabled: (val: boolean) => sound.setClickSoundEnabled(val),
+  };
 }

@@ -247,8 +247,8 @@ export const AiToolsModal: React.FC<AiToolsModalProps> = ({
           </button>
         </div>
 
-        {/* Feature Tabs */}
-        <div className="flex gap-1.5 p-3 bg-slate-100 border-b border-slate-200 overflow-x-auto no-scrollbar">
+        {/* Feature Tabs (Flows Downward, No Horizontal Scrolling) */}
+        <div className="flex flex-wrap gap-1.5 p-3 bg-slate-100 border-b border-slate-200">
           {[
             { id: 'live', label: 'Live Voice (Gemini 3.8)', icon: Mic },
             { id: 'music', label: 'Music Gen (Lyria)', icon: Music },
