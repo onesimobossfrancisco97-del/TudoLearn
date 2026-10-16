@@ -180,6 +180,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           <span>{step === 3 ? 'START MY JOURNEY' : 'CONTINUE'}</span>
           <ArrowRight className="w-5 h-5" />
         </button>
+
+        {/* Founder Attribution */}
+        <div className="text-center mt-3 text-[11px] font-medium text-slate-400">
+          TudoLearn • Founder of the App: <strong className="text-slate-600 font-black">Onesimo Boss Francisco</strong>
+        </div>
       </div>
     </div>
   );

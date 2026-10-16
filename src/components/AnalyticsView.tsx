@@ -273,6 +273,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Founder Attribution Sign-off */}
+      <div className="text-center py-4 text-xs text-slate-400 font-medium border-t border-slate-200/60 mt-6">
+        TudoLearn Global Academy • Founder of the App: <strong className="text-slate-700 font-black">Onesimo Boss Francisco</strong>
+      </div>
     </div>
   );
 };

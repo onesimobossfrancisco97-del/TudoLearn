@@ -149,11 +149,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             {/* Seal & Signatures */}
             <div className="flex items-center justify-between pt-6 border-t-2 border-slate-200 mt-6 max-w-lg mx-auto">
               <div className="text-left">
-                <div className="text-xs font-black text-slate-800">Pip AI & Academic Council</div>
-                <div className="text-[10px] text-slate-400 font-semibold">TudoLearn Pedagogical Board</div>
+                <div className="text-xs font-black text-slate-900">Onesimo Boss Francisco</div>
+                <div className="text-[10px] text-blue-800 font-extrabold">Founder & Executive Director</div>
+                <div className="text-[9px] text-slate-400 font-semibold">TudoLearn Academic Board</div>
                 <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold mt-1">
                   <ShieldCheck className="w-3 h-3" />
-                  <span>Verified Identity</span>
+                  <span>Verified Accreditation</span>
                 </div>
               </div>
 
@@ -183,7 +184,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
         {/* Bottom Banner */}
         <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-xs gap-2">
-          <span>This verified credential is officially registered to your TudoLearn profile.</span>
+          <span>This verified credential is officially issued by TudoLearn (Founder: <strong className="text-slate-800 font-black">Onesimo Boss Francisco</strong>).</span>
           <button
             onClick={handlePrint}
             className="text-blue-600 font-black hover:underline cursor-pointer flex items-center gap-1"

@@ -13,6 +13,7 @@ import {
   X,
   Sparkles,
   Shield,
+  Play,
 } from 'lucide-react';
 import { sound, useMenuClickSound } from '../utils/audio';
 import appLogoImg from '../assets/images/tudolearn_app_logo_1791585881128.jpg';
@@ -32,20 +33,26 @@ interface NavigationDockProps {
   currentTab: TabType;
   onChangeTab: (tab: TabType) => void;
   appLanguage?: AppLanguage;
+  onOpenPromoVideo?: () => void;
 }
 
-export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onChangeTab, appLanguage = 'en' }) => {
+export const NavigationDock: React.FC<NavigationDockProps> = ({
+  currentTab,
+  onChangeTab,
+  appLanguage = 'en',
+  onOpenPromoVideo,
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isClickSoundEnabled, toggleClickSound } = useMenuClickSound();
 
   const tabs: { id: TabType; label: string; icon: React.ElementType; description: string }[] = [
-    { id: 'learn', label: t('nav.learn', appLanguage), icon: Map, description: 'Courses & lessons path' },
-    { id: 'leaderboard', label: t('nav.leaderboard', appLanguage), icon: Trophy, description: 'Weekly XP leagues' },
-    { id: 'community', label: t('nav.community', appLanguage), icon: Users, description: 'Study posts & discussions' },
-    { id: 'badges', label: t('nav.badges', appLanguage), icon: Award, description: 'Achievements & milestones' },
-    { id: 'shop', label: t('nav.shop', appLanguage), icon: ShoppingBag, description: 'Gems, hearts & Super' },
-    { id: 'analytics', label: t('nav.analytics', appLanguage), icon: TrendingUp, description: 'Review stats & certificates' },
-    { id: 'studio', label: t('nav.management', appLanguage), icon: Shield, description: 'Creator studio & payment settings' },
+    { id: 'learn', label: t('nav.learn', appLanguage), icon: Map, description: t('nav.learn_desc', appLanguage) },
+    { id: 'leaderboard', label: t('nav.leaderboard', appLanguage), icon: Trophy, description: t('nav.leaderboard_desc', appLanguage) },
+    { id: 'community', label: t('nav.community', appLanguage), icon: Users, description: t('nav.community_desc', appLanguage) },
+    { id: 'badges', label: t('nav.badges', appLanguage), icon: Award, description: t('nav.badges_desc', appLanguage) },
+    { id: 'shop', label: t('nav.shop', appLanguage), icon: ShoppingBag, description: t('nav.shop_desc', appLanguage) },
+    { id: 'analytics', label: t('nav.analytics', appLanguage), icon: TrendingUp, description: t('nav.analytics_desc', appLanguage) },
+    { id: 'studio', label: t('nav.management', appLanguage), icon: Shield, description: t('nav.management_desc', appLanguage) },
   ];
 
   const handleSelectTab = (tabId: TabType) => {
@@ -94,7 +101,7 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
           {/* Navigation Links - Stacked Vertically Going Down */}
           <nav className="flex flex-col gap-1.5 overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
             <div className="text-[10px] uppercase font-black tracking-wider text-slate-400 px-3 py-1">
-              Main Menu
+              {t('nav.main_menu', appLanguage)}
             </div>
             {tabs.map((tab) => {
               const isActive = currentTab === tab.id;
@@ -135,7 +142,7 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
         </div>
 
         {/* Bottom Preferences Card: Menu Click Sound Switch */}
-        <div className="pt-3 border-t border-blue-50">
+        <div className="pt-3 border-t border-blue-50 space-y-2">
           <div className="p-3 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 rounded-2xl border border-blue-100/80 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -154,10 +161,10 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[11px] font-black text-slate-800 leading-tight">
-                    Menu Sound
+                    {t('menu.sound', appLanguage)}
                   </span>
                   <span className="text-[9px] text-slate-500 font-bold">
-                    {isClickSoundEnabled ? 'Click audio enabled' : 'Click audio muted'}
+                    {isClickSoundEnabled ? t('menu.sound_on', appLanguage) : t('menu.sound_off', appLanguage)}
                   </span>
                 </div>
               </div>
@@ -186,6 +193,36 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
               </button>
             </div>
           </div>
+
+          {/* Super TudoLearn Promotional Video Ad Button */}
+          {onOpenPromoVideo && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                onOpenPromoVideo();
+              }}
+              className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 hover:from-amber-300 hover:to-yellow-200 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer border border-amber-300"
+            >
+              <Play className="w-3.5 h-3.5 fill-slate-950" />
+              <span>{t('video.watch_ad', appLanguage)}</span>
+            </button>
+          )}
+
+          {/* Founder of the App Credit Card */}
+          <div className="p-2.5 rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white border border-blue-800/40 shadow-sm text-center">
+            <div className="flex items-center justify-center gap-1 text-[9px] uppercase tracking-wider font-extrabold text-amber-400 mb-0.5">
+              <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+              <span>{t('founder.badge', appLanguage)}</span>
+              <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+            </div>
+            <div className="text-xs font-black text-white tracking-tight">
+              {t('founder.name', appLanguage)}
+            </div>
+            <div className="text-[8.5px] text-blue-200/80 font-semibold mt-0.5">
+              {t('founder.desc', appLanguage)}
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -199,10 +236,10 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
         <div className="max-w-md mx-auto px-2 flex items-center justify-around h-16">
           {/* Primary Quick Tabs */}
           {[
-            { id: 'learn', label: 'Learn', icon: Map },
-            { id: 'leaderboard', label: 'Ranks', icon: Trophy },
-            { id: 'community', label: 'Community', icon: Users },
-            { id: 'shop', label: 'Shop', icon: ShoppingBag },
+            { id: 'learn', label: t('nav.learn', appLanguage), icon: Map },
+            { id: 'leaderboard', label: t('nav.leaderboard', appLanguage), icon: Trophy },
+            { id: 'community', label: t('nav.community', appLanguage), icon: Users },
+            { id: 'shop', label: t('nav.shop', appLanguage), icon: ShoppingBag },
           ].map((tab) => {
             const isActive = currentTab === tab.id;
             const Icon = tab.icon;
@@ -279,7 +316,7 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-black text-slate-800">
-                  Navigation & Preferences
+                  {t('menu.preferences', appLanguage)}
                 </span>
               </div>
               <button
@@ -309,9 +346,9 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
                   )}
                 </div>
                 <div>
-                  <div className="text-xs font-black text-slate-800">Menu Clicking Sound</div>
+                  <div className="text-xs font-black text-slate-800">{t('menu.sound', appLanguage)}</div>
                   <div className="text-[10px] text-slate-500 font-medium">
-                    {isClickSoundEnabled ? 'Sound is currently ON' : 'Sound is currently OFF'}
+                    {isClickSoundEnabled ? t('menu.sound_on', appLanguage) : t('menu.sound_off', appLanguage)}
                   </div>
                 </div>
               </div>
@@ -325,14 +362,14 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
                     : 'bg-slate-200 text-slate-700'
                 }`}
               >
-                {isClickSoundEnabled ? 'Turn OFF' : 'Turn ON'}
+                {isClickSoundEnabled ? t('menu.turn_off', appLanguage) : t('menu.turn_on', appLanguage)}
               </button>
             </div>
 
             {/* Vertical List of All Tabs - SCROLLS DOWN STRICTLY WITH SPACIOUS TOUCH TARGETS */}
             <div className="overflow-y-auto flex-1 space-y-2.5 pr-1 py-1">
               <div className="text-[10px] uppercase font-black tracking-wider text-slate-400 px-1 py-0.5">
-                All Sections (Scroll Down)
+                {t('menu.all_sections', appLanguage)}
               </div>
               {tabs.map((tab) => {
                 const isActive = currentTab === tab.id;
@@ -369,6 +406,41 @@ export const NavigationDock: React.FC<NavigationDockProps> = ({ currentTab, onCh
                   </button>
                 );
               })}
+            </div>
+
+            {/* Super Promo Video Button in Mobile Menu */}
+            {onOpenPromoVideo && (
+              <div className="mt-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setIsMobileMenuOpen(false);
+                    onOpenPromoVideo();
+                  }}
+                  className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer border border-amber-300"
+                >
+                  <Play className="w-3.5 h-3.5 fill-slate-950" />
+                  <span>{t('video.watch_ad', appLanguage)}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Founder of the App: Mobile Menu Screen Bottom Credit */}
+            <div className="mt-2 pt-2 border-t border-slate-100 shrink-0">
+              <div className="p-3 rounded-2xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white border border-blue-900/50 shadow-md text-center">
+                <div className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider font-black text-amber-400 mb-0.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{t('founder.badge', appLanguage)}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                </div>
+                <div className="text-sm font-black text-white tracking-tight">
+                  {t('founder.name', appLanguage)}
+                </div>
+                <div className="text-[10px] text-blue-200/80 font-medium mt-0.5">
+                  {t('founder.desc', appLanguage)}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -24,7 +24,7 @@ import { LessonOptionsModal } from './LessonOptionsModal';
 import { LessonStudyGuideModal } from './LessonStudyGuideModal';
 import { getLessonStudyGuide } from '../utils/lessonGuide';
 import { isLevelSuperExclusive, getLevelCertificateInfo } from '../utils/courseCurriculum';
-import { AppLanguage, t } from '../utils/i18n';
+import { AppLanguage, t, translateCourseTitle, translateSubject } from '../utils/i18n';
 
 interface LearningPathProps {
   course: Course;
@@ -38,6 +38,9 @@ interface LearningPathProps {
   onOpenSuperModal?: () => void;
   onOpenCertificate?: (course: Course, level: number) => void;
   appLanguage?: AppLanguage;
+  isVisitor?: boolean;
+  onOpenAuthModal?: () => void;
+  onOpenPromoVideo?: () => void;
 }
 
 export const LearningPath: React.FC<LearningPathProps> = ({
@@ -52,6 +55,9 @@ export const LearningPath: React.FC<LearningPathProps> = ({
   onOpenSuperModal,
   onOpenCertificate,
   appLanguage = 'en',
+  isVisitor = false,
+  onOpenAuthModal,
+  onOpenPromoVideo,
 }) => {
   const [courseLearningMode, setCourseLearningMode] = useState<'path' | 'study_guide' | 'flashcards'>('path');
   const [selectedNode, setSelectedNode] = useState<LessonNode | null>(null);
@@ -92,7 +98,7 @@ export const LearningPath: React.FC<LearningPathProps> = ({
                 </span>
               )}
             </div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight">{course.title}</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight">{translateCourseTitle(course.title, appLanguage)}</h1>
             <p className="text-xs sm:text-sm text-blue-100 mt-1 font-semibold line-clamp-2">
               {course.description}
             </p>
@@ -111,6 +117,75 @@ export const LearningPath: React.FC<LearningPathProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Visitor Sign-Up Barrier Alert / Banner */}
+      {isVisitor && onOpenAuthModal && (
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl p-4 text-white shadow-lg mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 border border-amber-300">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <div className="p-2.5 bg-white/20 rounded-xl shrink-0 shadow-xs">
+              <Lock className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-black flex items-center gap-1.5 justify-center sm:justify-start">
+                <span>{t('auth.welcome_title', appLanguage)}</span>
+                <span className="text-[10px] bg-white text-orange-700 font-extrabold px-2 py-0.2 rounded-full uppercase">
+                  Required
+                </span>
+              </div>
+              <p className="text-xs text-amber-100 font-semibold mt-0.5">
+                {t('auth.visitor_banner', appLanguage)}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              onOpenAuthModal();
+            }}
+            className="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-amber-50 text-amber-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
+          >
+            {t('auth.visitor_action', appLanguage)}
+          </button>
+        </div>
+      )}
+
+      {/* Super TudoLearn Promotional Video Ad Trigger Card */}
+      {onOpenPromoVideo && (
+        <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 border-2 border-amber-400/80 rounded-2xl p-3.5 text-white shadow-md mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md shadow-amber-400/20">
+              <Play className="w-5 h-5 fill-slate-950 ml-0.5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-black text-white">
+                  {t('video.title', appLanguage)}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-rose-600 text-white px-1.5 py-0.5 rounded animate-pulse">
+                  OFFICIAL AD
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-blue-200/80 font-medium line-clamp-1">
+                {t('video.subtitle', appLanguage)}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              sound.playClick();
+              onOpenPromoVideo();
+            }}
+            className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer"
+          >
+            <Play className="w-3.5 h-3.5 fill-slate-950" />
+            <span className="hidden sm:inline">{t('video.watch_ad', appLanguage)}</span>
+            <span className="sm:hidden">{t('video.watch_trailer', appLanguage)}</span>
+          </button>
+        </div>
+      )}
 
       {/* Course Learning Options Switcher: Distinct options, not just quizzes */}
       <div className="flex items-center justify-between bg-white border-2 border-blue-100 rounded-2xl p-1.5 mb-6 shadow-2xs gap-1">
@@ -338,6 +413,10 @@ export const LearningPath: React.FC<LearningPathProps> = ({
                                 setSuperGateLevel(unit.unitNumber);
                                 return;
                               }
+                              if (isVisitor && onOpenAuthModal) {
+                                onOpenAuthModal();
+                                return;
+                              }
                               if (lesson.type === 'chest') {
                                 if (!openedChestIds.includes(lesson.id)) {
                                   setOpenedChestIds([...openedChestIds, lesson.id]);
@@ -463,6 +542,10 @@ export const LearningPath: React.FC<LearningPathProps> = ({
                       type="button"
                       onClick={() => {
                         sound.playClick();
+                        if (isVisitor && onOpenAuthModal) {
+                          onOpenAuthModal();
+                          return;
+                        }
                         onSelectLesson(l);
                       }}
                       className="py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs rounded-xl shadow-2xs flex items-center gap-1 cursor-pointer"
@@ -527,6 +610,18 @@ export const LearningPath: React.FC<LearningPathProps> = ({
           </div>
         </div>
       )}
+
+      {/* Platform & Founder Statement Footer */}
+      <footer className="mt-12 pt-8 pb-6 border-t-2 border-blue-100 text-center space-y-2">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white text-xs font-black shadow-sm">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <span>Founder of the App: <strong className="text-amber-300 font-extrabold">Onesimo Boss Francisco</strong></span>
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        </div>
+        <p className="text-[11px] text-slate-500 font-semibold max-w-md mx-auto">
+          TudoLearn Global Learning Platform • Dedicated to universal mastery across languages, science, informatics & arts.
+        </p>
+      </footer>
 
       {/* Super TudoLearn Premium Level Gate Modal */}
       {superGateLevel && (
@@ -633,6 +728,10 @@ export const LearningPath: React.FC<LearningPathProps> = ({
           onStartQuiz={() => {
             const lessonToStart = activeStudyGuideLesson;
             setActiveStudyGuideLesson(null);
+            if (isVisitor && onOpenAuthModal) {
+              onOpenAuthModal();
+              return;
+            }
             onSelectLesson(lessonToStart);
           }}
           onOpenAiTutor={() => {

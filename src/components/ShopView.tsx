@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Shield, Sparkles, Check, Link2 } from 'lucide-react';
+import { Heart, Shield, Sparkles, Check, Link2, Play } from 'lucide-react';
 import { sound } from '../utils/audio';
 
 interface ShopViewProps {
@@ -11,6 +11,7 @@ interface ShopViewProps {
   onRefillHearts: (cost: number) => void;
   onBuyStreakFreeze: (cost: number) => void;
   onOpenSuperModal: () => void;
+  onOpenPromoVideo?: () => void;
 }
 
 export const ShopView: React.FC<ShopViewProps> = ({
@@ -22,6 +23,7 @@ export const ShopView: React.FC<ShopViewProps> = ({
   onRefillHearts,
   onBuyStreakFreeze,
   onOpenSuperModal,
+  onOpenPromoVideo,
 }) => {
   return (
     <div className="w-full max-w-xl mx-auto pb-24">
@@ -43,15 +45,32 @@ export const ShopView: React.FC<ShopViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              sound.playClick();
-              onOpenSuperModal();
-            }}
-            className="px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 font-black text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
-          >
-            {isSuper ? 'Manage Plan' : 'Try Free'}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {onOpenPromoVideo && (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  onOpenPromoVideo();
+                }}
+                className="px-3.5 py-3 bg-white/20 hover:bg-white/30 text-white font-black text-xs uppercase tracking-wider rounded-2xl border border-white/30 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                title="Watch Super TudoLearn Commercial"
+              >
+                <Play className="w-3.5 h-3.5 fill-white" />
+                <span className="hidden sm:inline">Watch Ad</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                sound.playClick();
+                onOpenSuperModal();
+              }}
+              className="px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 font-black text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              {isSuper ? 'Manage Plan' : 'Try Free'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -139,6 +158,11 @@ export const ShopView: React.FC<ShopViewProps> = ({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Founder Attribution */}
+      <div className="text-center py-4 text-xs text-slate-400 font-medium border-t border-slate-200/60 mt-6">
+        TudoLearn • Founder of the App: <strong className="text-slate-700 font-black">Onesimo Boss Francisco</strong>
       </div>
     </div>
   );

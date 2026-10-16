@@ -186,6 +186,32 @@ export const TeacherStudio: React.FC<TeacherStudioProps> = ({
         </div>
       </div>
 
+      {/* App Founder Executive Profile Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-4 sm:p-5 text-white shadow-md border border-blue-800/40 mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-black text-sm shrink-0">
+            👑
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-extrabold text-amber-400">
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <span>Founder of the App</span>
+            </div>
+            <div className="text-base sm:text-lg font-black text-white leading-tight">
+              Onesimo Boss Francisco
+            </div>
+            <div className="text-[11px] text-blue-200/80 font-medium">
+              Founder & Chief Executive of TudoLearn
+            </div>
+          </div>
+        </div>
+        <div className="hidden sm:block text-right">
+          <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-xl">
+            Platform Founder
+          </span>
+        </div>
+      </div>
+
       {/* =========================================================================
           MANAGEMENT SECTION: PAYMENT & MONETIZATION SETTINGS (MANAGEMENT ONLY)
           ========================================================================= */}
@@ -515,6 +541,16 @@ export const TeacherStudio: React.FC<TeacherStudioProps> = ({
           </form>
         </>
       )}
+
+      {/* Founder & Platform Sign-off */}
+      <div className="mt-10 pt-6 border-t border-slate-200 text-center space-y-1">
+        <div className="text-xs font-black text-slate-700">
+          TudoLearn Global Platform • Creator & Management Studio
+        </div>
+        <div className="text-[11px] text-slate-500 font-semibold">
+          Founder of the App: <strong className="text-blue-700 font-black">Onesimo Boss Francisco</strong>
+        </div>
+      </div>
 
       {/* Payment Configuration Modal (Triggered by Manager) */}
       <PaymentConfigModal

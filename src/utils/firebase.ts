@@ -5,6 +5,9 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
   User as FirebaseUser,
 } from 'firebase/auth';
 import {
@@ -43,6 +46,21 @@ export async function signInWithGoogle(): Promise<FirebaseUser | null> {
     console.warn('Google Sign-In note:', error);
     throw error;
   }
+}
+
+// Authentication helper: Email & Password Sign Up
+export async function signUpWithEmail(email: string, pass: string, name: string): Promise<FirebaseUser> {
+  const cred = await createUserWithEmailAndPassword(auth, email, pass);
+  if (name.trim() && cred.user) {
+    await updateProfile(cred.user, { displayName: name.trim() });
+  }
+  return cred.user;
+}
+
+// Authentication helper: Email & Password Sign In
+export async function signInWithEmail(email: string, pass: string): Promise<FirebaseUser> {
+  const cred = await signInWithEmailAndPassword(auth, email, pass);
+  return cred.user;
 }
 
 // Authentication helper: Sign Out

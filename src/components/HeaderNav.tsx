@@ -25,7 +25,7 @@ import { Course } from '../types';
 import { sound, useMenuClickSound } from '../utils/audio';
 import { DailyProgressRing } from './DailyProgressRing';
 import appLogoImg from '../assets/images/tudolearn_app_logo_1791585881128.jpg';
-import { AppLanguage, SUPPORTED_LANGUAGES, t } from '../utils/i18n';
+import { AppLanguage, SUPPORTED_LANGUAGES, t, translateCourseTitle, translateSubject } from '../utils/i18n';
 
 interface HeaderNavProps {
   courses: Course[];
@@ -552,7 +552,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                    Switch Course or Subject
+                    {t('header.switch_course', appLanguage)}
                   </h3>
                   <p className="text-[10px] sm:text-xs text-slate-500 font-bold">
                     {courses.length} learning paths available
@@ -576,7 +576,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 type="text"
                 value={courseSearch}
                 onChange={(e) => setCourseSearch(e.target.value)}
-                placeholder="Search coding, informatics, languages, science..."
+                placeholder={t('header.search_course', appLanguage)}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 focus:outline-hidden focus:border-blue-500 focus:bg-white font-medium"
                 autoFocus
               />
@@ -585,11 +585,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             {/* Subject Category Filter Tabs (Spacious, wraps vertically, never scrolls sideways) */}
             <div className="flex flex-wrap gap-2 mb-3 shrink-0">
               {[
-                { id: 'all', label: 'All Subjects' },
-                { id: 'informatics', label: `💻 Informatics (${courses.filter((c) => c.subject === 'informatics' || c.subject === 'coding').length})` },
-                { id: 'languages', label: `🌍 Languages (${courses.filter((c) => c.subject === 'languages').length})` },
-                { id: 'music', label: `🎸 Music (${courses.filter((c) => c.subject === 'music').length})` },
-                { id: 'stem', label: '🔬 Science & Math' },
+                { id: 'all', label: t('subject.all', appLanguage) },
+                { id: 'informatics', label: `💻 ${t('subject.informatics', appLanguage)} (${courses.filter((c) => c.subject === 'informatics' || c.subject === 'coding').length})` },
+                { id: 'languages', label: `🌍 ${t('subject.languages', appLanguage)} (${courses.filter((c) => c.subject === 'languages').length})` },
+                { id: 'music', label: `🎸 ${t('subject.music', appLanguage)} (${courses.filter((c) => c.subject === 'music').length})` },
+                { id: 'stem', label: `🔬 ${t('subject.stem', appLanguage)}` },
               ].map((cat) => (
                 <button
                   key={cat.id}
@@ -648,11 +648,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className={`text-xs sm:text-sm font-black truncate ${isCurrent ? 'text-white' : 'text-slate-900'}`}>
-                          {c.title}
+                          {translateCourseTitle(c.title, appLanguage)}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={`text-[10px] capitalize font-bold ${isCurrent ? 'text-blue-100' : 'text-slate-500'}`}>
-                            {c.subject === 'languages' ? c.language || 'Language' : c.subject}
+                            {c.subject === 'languages' ? c.language || 'Language' : translateSubject(c.subject, appLanguage)}
                           </span>
                           <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold ${isCurrent ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'}`}>
                             {c.totalLearners} learners
@@ -669,8 +669,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 })}
             </div>
 
-            {/* Bottom Audio Sound Preferences Row */}
-            <div className="pt-3 mt-2 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/60 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-4 rounded-b-3xl">
+            {/* Bottom Audio Sound Preferences & Founder Row */}
+            <div className="pt-3 mt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0 bg-slate-50/70 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 p-4 rounded-b-3xl">
               <div className="flex items-center gap-2">
                 {isClickSoundEnabled ? (
                   <Volume2 className="w-4 h-4 text-blue-600" />
@@ -680,18 +680,22 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 <div className="text-[11px] font-bold text-slate-700">
                   Menu Sound: <span className={isClickSoundEnabled ? 'text-blue-600' : 'text-slate-400'}>{isClickSoundEnabled ? 'Enabled' : 'Muted'}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleSoundToggle}
+                  className={`ml-1.5 px-2.5 py-1 rounded-lg font-black text-xs cursor-pointer transition-colors ${
+                    isClickSoundEnabled
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-2xs'
+                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                  }`}
+                >
+                  {isClickSoundEnabled ? 'Turn OFF' : 'Turn ON'}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleSoundToggle}
-                className={`px-3 py-1.5 rounded-xl font-black text-xs cursor-pointer transition-colors ${
-                  isClickSoundEnabled
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-xs'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                {isClickSoundEnabled ? 'Turn OFF' : 'Turn ON'}
-              </button>
+
+              <div className="text-[10px] text-slate-500 font-medium">
+                Founder: <span className="font-black text-slate-900">Onesimo Boss Francisco</span>
+              </div>
             </div>
           </div>
         </div>,
@@ -835,6 +839,20 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
             </button>
+
+            {/* Founder of the App Credit */}
+            <div className="mt-3 pt-2.5 border-t border-slate-100 text-center">
+              <div className="inline-flex items-center gap-1 text-[9px] uppercase tracking-wider font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                <span>{t('founder.badge', appLanguage)}</span>
+              </div>
+              <div className="text-xs font-black text-slate-900 mt-1">
+                {t('founder.name', appLanguage)}
+              </div>
+              <div className="text-[9px] text-slate-400 font-medium">
+                {t('founder.desc', appLanguage)}
+              </div>
+            </div>
           </div>
         </div>,
         document.body

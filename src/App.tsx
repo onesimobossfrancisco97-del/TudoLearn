@@ -38,6 +38,8 @@ import { SubscriptionModal } from './components/SubscriptionModal';
 import { CertificateModal } from './components/CertificateModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { DailyChallengeModal } from './components/DailyChallengeModal';
+import { AuthModal } from './components/AuthModal';
+import { SuperPromoVideoModal } from './components/SuperPromoVideoModal';
 import { getDailyChallengeForDate, getTodayDateKey } from './data/dailyChallengesData';
 import { sound } from './utils/audio';
 import { enhanceAllCoursesWithTenLevels } from './utils/courseCurriculum';
@@ -67,6 +69,9 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
   const [isSimulatedOffline, setIsSimulatedOffline] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingLessonForAuth, setPendingLessonForAuth] = useState<LessonNode | null>(null);
+  const [showPromoVideo, setShowPromoVideo] = useState(false);
 
   // Today's rotating daily challenge & date key
   const todayDateKey = getTodayDateKey();
@@ -177,18 +182,41 @@ export default function App() {
     }));
   };
 
+  // Start lesson with mandatory visitor sign-up check
+  const handleSelectLessonWithAuth = (lesson: LessonNode) => {
+    if (!firebaseUser) {
+      sound.playClick();
+      setPendingLessonForAuth(lesson);
+      setShowAuthModal(true);
+      return;
+    }
+    sound.playClick();
+    setActiveLesson(lesson);
+  };
+
+  // Sign-in / Sign-up success handler
+  const handleAuthSuccess = (authenticatedUser: any) => {
+    setFirebaseUser(authenticatedUser);
+    if (authenticatedUser.displayName) {
+      setUser((prev) => ({
+        ...prev,
+        name: authenticatedUser.displayName,
+        avatar: authenticatedUser.photoURL || prev.avatar,
+      }));
+    }
+    if (pendingLessonForAuth) {
+      const target = pendingLessonForAuth;
+      setPendingLessonForAuth(null);
+      setTimeout(() => {
+        setActiveLesson(target);
+      }, 350);
+    }
+  };
+
   // Google Sign In handler
   const handleSignInGoogle = async () => {
     sound.playClick();
-    try {
-      const signedInUser = await signInWithGoogle();
-      if (signedInUser) {
-        sound.playLevelUp();
-        confetti({ particleCount: 70, spread: 60 });
-      }
-    } catch (err: any) {
-      console.warn('Sign-in cancelled or note:', err.message);
-    }
+    setShowAuthModal(true);
   };
 
   // Sign out handler
@@ -505,12 +533,18 @@ export default function App() {
           <LearningPath
             course={currentCourse}
             completedLessonIds={user.completedLessonIds}
-            onSelectLesson={(lesson) => setActiveLesson(lesson)}
+            onSelectLesson={handleSelectLessonWithAuth}
             onOpenChest={handleOpenChest}
             onOpenAiTutor={() => setShowAiTutor(true)}
             dailyChallenge={dailyChallenge}
             user={user}
-            onOpenDailyChallenge={() => setShowDailyChallengeModal(true)}
+            onOpenDailyChallenge={() => {
+              if (!firebaseUser) {
+                setShowAuthModal(true);
+                return;
+              }
+              setShowDailyChallengeModal(true);
+            }}
             onOpenSuperModal={() => setShowSuperModal(true)}
             onOpenCertificate={(course, level) => {
               setCertificateCourse(course);
@@ -518,6 +552,9 @@ export default function App() {
               setShowCertificateModal(true);
             }}
             appLanguage={appLanguage}
+            isVisitor={!firebaseUser}
+            onOpenAuthModal={() => setShowAuthModal(true)}
+            onOpenPromoVideo={() => setShowPromoVideo(true)}
           />
         )}
 
@@ -554,6 +591,7 @@ export default function App() {
             onRefillHearts={handleRefillHearts}
             onBuyStreakFreeze={handleBuyStreakFreeze}
             onOpenSuperModal={() => setShowSuperModal(true)}
+            onOpenPromoVideo={() => setShowPromoVideo(true)}
           />
         )}
 
@@ -622,6 +660,34 @@ export default function App() {
           onClose={() => setShowSuperModal(false)}
           onSubscribeSuccess={handleSubscribeSuccess}
           isAlreadySuper={user.isSuper}
+          onOpenVideoAd={() => {
+            setShowSuperModal(false);
+            setShowPromoVideo(true);
+          }}
+        />
+      )}
+
+      {/* Super TudoLearn Promotional Video Ad Commercial Modal */}
+      {showPromoVideo && (
+        <SuperPromoVideoModal
+          isOpen={showPromoVideo}
+          onClose={() => setShowPromoVideo(false)}
+          appLanguage={appLanguage}
+          onUpgradeDirect={() => {
+            setShowPromoVideo(false);
+            setShowSuperModal(true);
+          }}
+        />
+      )}
+
+      {/* Visitor Sign-Up Barrier & Authentication Modal */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+          appLanguage={appLanguage}
+          pendingLessonTitle={pendingLessonForAuth?.title}
         />
       )}
 

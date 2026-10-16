@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Settings,
   Link2,
+  Play,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { sound } from '../utils/audio';
@@ -29,6 +30,7 @@ interface SubscriptionModalProps {
    * Regular users and students will NEVER see or access the "Edit Link" option.
    */
   isManagement?: boolean;
+  onOpenVideoAd?: () => void;
 }
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -37,6 +39,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   onSubscribeSuccess,
   isAlreadySuper: _isAlreadySuper = false,
   isManagement = false,
+  onOpenVideoAd,
 }) => {
   const [mounted, setMounted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'yearly' | 'monthly'>('yearly');
@@ -268,6 +271,21 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 )}
               </div>
 
+              {/* Watch Video Ad Commercial Trigger */}
+              {onOpenVideoAd && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    onOpenVideoAd();
+                  }}
+                  className="w-full py-2.5 px-3 bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 hover:bg-slate-900 text-amber-300 font-black text-xs rounded-xl border border-amber-400/40 shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 fill-amber-300" />
+                  <span>🎬 Watch Super TudoLearn Commercial Ad</span>
+                </button>
+              )}
+
               {/* Primary Call to Action */}
               <div className="space-y-1.5 pt-1">
                 <a
@@ -314,6 +332,10 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-400 text-center">
                 <ShieldCheck className="w-3 h-3 text-blue-600" />
                 <span>Zero charge today. Cancel easily anytime in settings.</span>
+              </div>
+
+              <div className="text-center text-[10px] text-slate-400 font-medium pt-0.5">
+                Super TudoLearn • Founder of the App: <strong className="text-slate-700 font-black">Onesimo Boss Francisco</strong>
               </div>
             </>
           )}
